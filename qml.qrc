@@ -1,0 +1,9 @@
+<RCC>
+    <qresource prefix="/">
+        <file>qml/AnalysisScreen.qml</file>
+        <file>qml/InitialScreen.qml</file>
+        <file>qml/JS_functions.js</file>
+        <file>qml/Main.qml</file>
+        <file>qml/board_utils.js</file>
+    </qresource>
+</RCC>
