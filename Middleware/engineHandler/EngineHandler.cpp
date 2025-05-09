@@ -7,53 +7,37 @@ EngineHandler::EngineHandler(QObject *parent)
 {}
 
 bool EngineHandler::isValidPGN(const QString &pgn) {
-    // Regular expression for metadata tags: [Tag "Value"]
-    QRegularExpression metadataRegex(
-        "^\\[([A-Za-z]+)\\s+\"([^\"]*)\"\\]\\s*"
-        );
+    // PGN validation using regular expressions
+    //  Check for White/Black tags, and result.
 
-    // Regular expression for move text
-    QRegularExpression moveTextRegex(
-        "([1-9][0-9]*\\.)?\\s*"                 // Move number (optional)
-        "("
-        "([O-O-O|O-O])|"                 // Castling
-        "([KQRBN]?[a-h]?[1-8]?[-x]?[a-h][1-8][+#]?)" // Standard move
-        "(=[QRBN])?"                   // Promotion (optional)
-        ")"
-        "(\\s*(1-0|0-1|1\\/2-1\\/2|\\*))?\\s*"  // Optional result
-        );
+    bool valid = true;
+    QString result;
+    QString whiteTag;
+    QString blackTag;
 
-    QStringList lines = pgn.split('\n', Qt::SkipEmptyParts); // Split into lines
+    // Check for the presence of the [White ...] and [Black ...] tags
+    QRegularExpression whiteRegex("\\[White\\s+\".*\"\\]");
+    QRegularExpression blackRegex("\\[Black\\s+\".*\"\\]");
+    whiteTag = whiteRegex.match(pgn).captured(0);
+    blackTag = blackRegex.match(pgn).captured(0);
 
-    bool metadataSectionEnded = false; // Track metadata section
-    QString moveText;
-
-    for (const QString &line : lines) {
-        if (!metadataSectionEnded) {
-            // Check for metadata tags only if we haven't reached the move text
-            if (!metadataRegex.match(line).hasMatch()) {
-                // If it's not a metadata tag, assume it's the start of move text
-                metadataSectionEnded = true;
-                if (!metadataRegex.match(line).hasMatch())
-                {
-                    qDebug() << "Invalid metadata:" << line;
-                    return false;
-                }
-            }
-        }
-        if (metadataSectionEnded) {
-            moveText += line + " ";
-        }
+    if (whiteTag.isEmpty() || blackTag.isEmpty())
+    {
+        qDebug() << "isValidPGN failed for: " << pgn << "Missing White or Black Tag";
+        valid = false;
     }
 
-    if(metadataSectionEnded){
-        if (!moveTextRegex.match(moveText).hasMatch()) {
-            qDebug() << "Invalid move text:" << moveText;
-            return false; // Invalid move text
-        }
+    // Check for the result at the end of the PGN string
+    QRegularExpression resultRegex("(\\d-\\d|\\*|1-0|0-1|1/2-1/2)$");
+    result = resultRegex.match(pgn).captured(0);
+    if (result.isEmpty())
+    {
+        qDebug() << "isValidPGN failed for: " << pgn << "Missing result";
+        valid = false;
     }
-    return true;
+    return valid;
 }
+
 // Function to parse a PGN chess game
 EngineTypes::PgnData EngineHandler::parsePgn(const QString& pgnString) {
     EngineTypes::PgnData data;
