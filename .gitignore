@@ -33,6 +33,6 @@ CMakeLists.user.txt
 cmake_install.cmake
 /CMakeUserPresets.json
 
-# Qt Creator specific files
+# Qt Creator specific files.
 *.autosave
 *.qbs.user
