@@ -1,0 +1,38 @@
+# Build artifacts
+/build/
+/debug/
+/release/
+*.o
+*.a
+*.so
+*.dylib
+*.exe
+*.pdb
+*.ilk
+*.log
+*.stackdump
+
+# Qt-specific files
+*.user
+*.pro.user
+*.qrc.user
+
+# Temporary files
+*~
+\#*\#
+*.swp
+*.bak
+*.tmp
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# CMake files
+CMakeLists.user.txt
+cmake_install.cmake
+/CMakeUserPresets.json
+
+# Qt Creator specific files
+*.autosave
+*.qbs.user
