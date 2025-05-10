@@ -28,8 +28,8 @@ bool EngineHandler::isValidPGN(const QString &pgn) {
     }
 
     // Check for the result at the end of the PGN string
-    QRegularExpression resultRegex("(\\d-\\d|\\*|1-0|0-1|1/2-1/2)$");
-    result = resultRegex.match(pgn).captured(0);
+    QRegularExpression resultRegex1("(\\d-\\d|\\*|1-0|0-1|1/2-1/2)$");
+    result = resultRegex1.match(pgn).captured(0);
     if (result.isEmpty())
     {
         qDebug() << "PGN failed - Missing result";
@@ -43,6 +43,8 @@ EngineTypes::PgnData EngineHandler::parsePgn(const QString& pgnString) {
     EngineTypes::PgnData data;
     QStringList lines = pgnString.split('\n');
     QString moveText;
+    QString result; // To store the game result
+
     if(!isValidPGN(pgnString)){
         qDebug()<<"PGN not Valid";
         return data;
@@ -50,13 +52,13 @@ EngineTypes::PgnData EngineHandler::parsePgn(const QString& pgnString) {
 
     qDebug() << "PGN Valid";
     QRegularExpression moveOnlyRegex("([^\\s.]+)(?=\\s+|$)");
-    QRegularExpression resultRegex("(\\s*)(1-0|0-1|1/2-1/2|\\*)$");
     QRegularExpression tagRegex("\\[(\\w+)\\s+\"([^\"]*)\"\\]");
+    QRegularExpression resultRegex("(\\s*)(1-0|0-1|1/2-1/2|\\*)$");
 
     QMap<QString, QString> tags;
     QList<QString> moves;
 
-
+    // Process lines to extract tags and build moveText
     for (const QString& line : lines) {
         QRegularExpressionMatch tagMatch = tagRegex.match(line);
         if (tagMatch.hasMatch()) {
@@ -66,15 +68,19 @@ EngineTypes::PgnData EngineHandler::parsePgn(const QString& pgnString) {
         }
     }
 
-    // First, try to find the game result at the end and isolate the moves part
-    QRegularExpressionMatch resultMatch = resultRegex.match(moveText);
-    QString movesPart = moveText.trimmed(); // Trim to handle potential leading/trailing spaces
-    if (resultMatch.hasMatch() && resultMatch.capturedEnd(1) == movesPart.length()) {
-        movesPart = movesPart.left(resultMatch.capturedStart(1)).trimmed();
+    QString trimmedMoveText = moveText.trimmed();
+    QRegularExpressionMatch resultMatch = resultRegex.match(trimmedMoveText);
+
+    // Extract the result if found at the end of the move text
+    if (resultMatch.hasMatch()) {
+        result = resultMatch.captured(2); // Capture the actual result (group 2)
+        // Trim the result (and any leading whitespace) from the end of the move text
+        trimmedMoveText.chop(resultMatch.captured(0).length());
+        trimmedMoveText = trimmedMoveText.trimmed(); // Re-trim after chopping
     }
 
-    // Extract moves using the simplified regex
-    QRegularExpressionMatchIterator moveIterator = moveOnlyRegex.globalMatch(movesPart);
+    // Extract moves from the trimmed move text
+    QRegularExpressionMatchIterator moveIterator = moveOnlyRegex.globalMatch(trimmedMoveText);
     while (moveIterator.hasNext()) {
         QRegularExpressionMatch moveMatch = moveIterator.next();
         moves.append(moveMatch.captured(1).trimmed());
@@ -82,5 +88,6 @@ EngineTypes::PgnData EngineHandler::parsePgn(const QString& pgnString) {
 
     data.tags = tags;
     data.moves = moves;
+    data.result = result;
     return data;
 }
