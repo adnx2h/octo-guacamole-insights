@@ -13,7 +13,6 @@ private:
 
 public:
     explicit EngineHandler(QObject *parent = nullptr);
-    ~EngineHandler();
     Q_INVOKABLE void parsePgn(const QString& pgnString);
 private:
 
