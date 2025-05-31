@@ -20,7 +20,11 @@ Item {
             id: id_pgnInput
             width: parent.width - 20
             height: 200
-            placeholderText: qsTr("Paste Chess PGN here...")
+            // placeholderText: qsTr("Paste Chess PGN here...")
+            text: `[White "adnx2h"]
+            [Black "Gioelone"]
+            [Result "1-0"]
+            1. d4 Nf6 2. Bf4 d6 3. c4 g6 4. e3 Bg7 5. Bd3 O-O 6. Nf3 c5 7. Nc3 Re8 8. O-O e5 9. dxe5 dxe5 10. Bg5 h6 1-0`
             color: "gray" // Color of the input text
             background: Rectangle {
                 color: "white"

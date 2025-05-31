@@ -13,16 +13,12 @@ private:
 
 public:
     explicit EngineHandler(QObject *parent = nullptr);
-
-    // // Structure to hold the parsed PGN data
-    // struct PgnData {
-    //     QMap<QString, QString> tags;
-    //     QStringList moves;
-    //     QString result;
-    // };
-    Q_INVOKABLE EngineTypes::PgnData parsePgn(const QString& pgnString);
+    ~EngineHandler();
+    Q_INVOKABLE void parsePgn(const QString& pgnString);
+private:
 
 signals:
+    void rawMovesListReady(const QStringList& moves);
 };
 
 #endif // ENGINEHANDLER_H

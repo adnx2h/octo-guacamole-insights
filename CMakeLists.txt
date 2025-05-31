@@ -23,6 +23,8 @@ qt_add_qml_module(appChess
     SOURCES Middleware/engineHandler/EngineTypes.h
     QML_FILES qml/Main.qml
     RESOURCES qml.qrc
+    SOURCES Middleware/engineHandler/MovesListModel.h
+    SOURCES Middleware/engineHandler/MovesListModel.cpp
 
 
 )

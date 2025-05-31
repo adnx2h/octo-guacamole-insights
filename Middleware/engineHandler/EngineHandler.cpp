@@ -39,55 +39,60 @@ bool EngineHandler::isValidPGN(const QString &pgn) {
 }
 
 // Function to parse a PGN chess game
-EngineTypes::PgnData EngineHandler::parsePgn(const QString& pgnString) {
-    EngineTypes::PgnData data;
+void EngineHandler::parsePgn(const QString& pgnString) {
+    EngineTypes::PgnData pgn_data;
     QStringList lines = pgnString.split('\n');
     QString moveText;
     QString result; // To store the game result
-
-    if(!isValidPGN(pgnString)){
-        qDebug()<<"PGN not Valid";
-        return data;
-    }
-
-    qDebug() << "PGN Valid";
-    QRegularExpression moveOnlyRegex("([^\\s.]+)(?=\\s+|$)");
-    QRegularExpression tagRegex("\\[(\\w+)\\s+\"([^\"]*)\"\\]");
-    QRegularExpression resultRegex("(\\s*)(1-0|0-1|1/2-1/2|\\*)$");
-
     QMap<QString, QString> tags;
     QList<QString> moves;
 
-    // Process lines to extract tags and build moveText
-    for (const QString& line : lines) {
-        QRegularExpressionMatch tagMatch = tagRegex.match(line);
-        if (tagMatch.hasMatch()) {
-            tags[tagMatch.captured(1)] = tagMatch.captured(2);
-        } else if (!line.trimmed().isEmpty() && !line.startsWith(";")) {
-            moveText += line + " ";
+    if(isValidPGN(pgnString)){
+        qDebug() << "PGN Valid";
+        QRegularExpression moveOnlyRegex("([^\\s.]+)(?=\\s+|$)");
+        QRegularExpression tagRegex("\\[(\\w+)\\s+\"([^\"]*)\"\\]");
+        QRegularExpression resultRegex("(\\s*)(1-0|0-1|1/2-1/2|\\*)$");
+
+
+
+        // Process lines to extract tags and build moveText
+        for (const QString& line : lines) {
+            QRegularExpressionMatch tagMatch = tagRegex.match(line);
+            if (tagMatch.hasMatch()) {
+                tags[tagMatch.captured(1)] = tagMatch.captured(2);
+            } else if (!line.trimmed().isEmpty() && !line.startsWith(";")) {
+                moveText += line + " ";
+            }
         }
+
+        QString trimmedMoveText = moveText.trimmed();
+        QRegularExpressionMatch resultMatch = resultRegex.match(trimmedMoveText);
+
+        // Extract the result if found at the end of the move text
+        if (resultMatch.hasMatch()) {
+            result = resultMatch.captured(2); // Capture the actual result (group 2)
+            // Trim the result (and any leading whitespace) from the end of the move text
+            trimmedMoveText.chop(resultMatch.captured(0).length());
+            trimmedMoveText = trimmedMoveText.trimmed(); // Re-trim after chopping
+        }
+
+        // Extract moves from the trimmed move text
+        QRegularExpressionMatchIterator moveIterator = moveOnlyRegex.globalMatch(trimmedMoveText);
+        while (moveIterator.hasNext()) {
+            QRegularExpressionMatch moveMatch = moveIterator.next();
+            moves.append(moveMatch.captured(1).trimmed());
+        }
+
+        pgn_data.tags = tags;
+        pgn_data.moves = moves;
+        pgn_data.result = result;
+
+        emit rawMovesListReady(pgn_data.moves);
+        // emit tagsReady(pgn_data.tags);
+        // emit resultReady(pgn_data.result);
     }
-
-    QString trimmedMoveText = moveText.trimmed();
-    QRegularExpressionMatch resultMatch = resultRegex.match(trimmedMoveText);
-
-    // Extract the result if found at the end of the move text
-    if (resultMatch.hasMatch()) {
-        result = resultMatch.captured(2); // Capture the actual result (group 2)
-        // Trim the result (and any leading whitespace) from the end of the move text
-        trimmedMoveText.chop(resultMatch.captured(0).length());
-        trimmedMoveText = trimmedMoveText.trimmed(); // Re-trim after chopping
+    else{
+        qDebug()<<"PGN not Valid";
+        //what to do????
     }
-
-    // Extract moves from the trimmed move text
-    QRegularExpressionMatchIterator moveIterator = moveOnlyRegex.globalMatch(trimmedMoveText);
-    while (moveIterator.hasNext()) {
-        QRegularExpressionMatch moveMatch = moveIterator.next();
-        moves.append(moveMatch.captured(1).trimmed());
-    }
-
-    data.tags = tags;
-    data.moves = moves;
-    data.result = result;
-    return data;
 }

@@ -2,6 +2,7 @@ import QtQuick 2.0
 import QtQuick.Controls 2.5
 import "board_utils.js" as BoardUtils
 import QtQuick.Layouts 1
+import PGN_movesModule 1.0
 
 Item{
     id: id_AnalysisScreen
@@ -91,38 +92,16 @@ Item{
         anchors.left: parent.left
         color: "red"
 
+        MovesListModel {
+            id: pgn_movesModel
+        }
+
         ListView {
             id: id_listView_movements
             width: parent.width
             height: parent.height
-            model: ListModel {
-                id: id_listModel_moves
-                ListElement {
-                    moveNumber: 1
-                    whiteMove: "e4"
-                    blackMove: "c5"
-                }
-                ListElement {
-                    moveNumber: 2
-                    whiteMove: "d4"
-                    blackMove: "cxd4"
-                }
-                ListElement {
-                    moveNumber: 3
-                    whiteMove: "Nxd4"
-                    blackMove: "Bxd4"
-                }
-                ListElement {
-                    moveNumber: 4
-                    whiteMove: "Nxd4"
-                    blackMove: "Nf6"
-                }
-                ListElement {
-                    moveNumber: 5
-                    whiteMove: "Nc3"
-                    blackMove: "a6"
-                }
-            }
+
+            model: movesModel
             visible: true
 
             delegate: Item {
@@ -131,7 +110,7 @@ Item{
                 Rectangle { // The background rectangle for each line
                     width: parent.width
                     height: parent.height
-                    color: "white" // Or any color you want for the background of each line
+                    color: "white"
                     border.width: 1
                     border.color: "lightgray"
                     RowLayout {
@@ -139,31 +118,35 @@ Item{
                         height: parent.height
                         spacing: 5
                         Text {
-                            width: parent.width * 0.2 // Adjust width as needed
-                            text: moveNumber + "."
+                            width: parent.width * 0.2
+                            text: model.moveNumber + "."
                             verticalAlignment: Text.AlignVCenter
                         }
 
                         Text {
-                            width: parent.width * 0.35 // Adjust width as needed
-                            text: whiteMove
+                            width: parent.width * 0.35
+                            text: model.whiteMove
                             verticalAlignment: Text.AlignVCenter
                             MouseArea {
                                 anchors.fill: parent
                                 onClicked: {
-                                    console.log(moveNumber, " White moves: ", whiteMove)
+                                    if (model.moveItemObject) {
+                                        console.log(model.moveItemObject.moveNumber, " White move: ", model.moveItemObject.whiteMove)
+                                    }
                                 }
                             }
                         }
 
                         Text {
-                            width: parent.width * 0.35 // Adjust width as needed
-                            text: blackMove
+                            width: parent.width * 0.35
+                            text: model.blackMove
                             verticalAlignment: Text.AlignVCenter
                             MouseArea{
                                 anchors.fill: parent
                                 onClicked: {
-                                    console.log(moveNumber, " Black moves: ", blackMove)
+                                    if (model.moveItemObject) {
+                                        console.log(model.moveItemObject.moveNumber, " Black moves: ", model.moveItemObject.blackMove)
+                                    }
                                 }
                             }
                         }
