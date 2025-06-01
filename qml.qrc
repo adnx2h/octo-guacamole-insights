@@ -5,5 +5,6 @@
         <file>qml/JS_functions.js</file>
         <file>qml/Main.qml</file>
         <file>qml/board_utils.js</file>
+        <file>qml/ChessBoard.qml</file>
     </qresource>
 </RCC>
