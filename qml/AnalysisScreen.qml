@@ -13,14 +13,14 @@ Item{
     RowLayout{
         id: id_rowLayout_top_bar
         width: parent.width - id_movementsContainer.width
-        height: id_chessBoard.height / 14
+        height: id_analysisChessBoard.height / 14
         anchors.top: parent.top
         anchors.left: parent.left
         Button {
             id: id_Btn_Settings
             text: "..."
             Layout.fillWidth: false
-            width: id_chessBoard.width / 9
+            width: id_analysisChessBoard.width / 9
             Layout.fillHeight: true
             onClicked: {
                 console.log("Settings Button Clicked");
@@ -30,14 +30,21 @@ Item{
     }
 
     ChessBoard {
-        id: id_chessBoard
+        id: id_analysisChessBoard
+              x: 0 // Start from the left edge of AnalysisScreen
+              y: id_rowLayout_top_bar.height // Position it right below the top bar
+              width: id_AnalysisScreen.width // Make the chessboard take the full width of AnalysisScreen
+              height: width // Keep the chessboard square
+
+              // I can change these values later if you want a smaller board,
+              // e.g., width: id_AnalysisScreen.width * 0.8, x: (id_AnalysisScreen.width - width) / 2
     }
 
     TextArea {
         id: idTextArea_description
         width: parent.width
         anchors.bottom: id_movementsContainer.top
-        anchors.top: id_chessBoard.bottom
+        anchors.top: id_analysisChessBoard.bottom
         anchors.left: parent.left
         anchors.right: parent.right
         readOnly: false

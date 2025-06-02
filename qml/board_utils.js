@@ -24,10 +24,10 @@ function setSquareColor(squareIndex){
     }
 }
 
-function setSquareX(index, width){
-    return (index % 8) * width; // Calculate x position (column)
+function setSquareX(index, squareSize){
+    return (index % 8) * squareSize; // Calculate x position (column)
 }
 
-function setSquareY(index, height){
-    return Math.floor(index / 8) * height // Calculate y position (row)
+function setSquareY(index, squareSize){
+    return Math.floor(index / 8) * squareSize // Calculate y position (row)
 }

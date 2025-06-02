@@ -6,5 +6,17 @@
         <file>qml/Main.qml</file>
         <file>qml/board_utils.js</file>
         <file>qml/ChessBoard.qml</file>
+        <file>images/bB.png</file>
+        <file>images/bK.png</file>
+        <file>images/bN.png</file>
+        <file>images/bP.png</file>
+        <file>images/bQ.png</file>
+        <file>images/bR.png</file>
+        <file>images/wB.png</file>
+        <file>images/wK.png</file>
+        <file>images/wN.png</file>
+        <file>images/wP.png</file>
+        <file>images/wQ.png</file>
+        <file>images/wR.png</file>
     </qresource>
 </RCC>
