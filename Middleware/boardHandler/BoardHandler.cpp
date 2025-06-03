@@ -1,12 +1,12 @@
-#include "EngineHandler.h"
+#include "BoardHandler.h"
 #include <QRegularExpression>
 #include <QDebug>
 
-EngineHandler::EngineHandler(QObject *parent)
+BoardHandler::BoardHandler(QObject *parent)
     : QObject{parent}
 {}
 
-bool EngineHandler::isValidPGN(const QString &pgn) {
+bool BoardHandler::isValidPGN(const QString &pgn) {
     // PGN validation using regular expressions
     //  Check for White/Black tags, and result.
 
@@ -39,7 +39,7 @@ bool EngineHandler::isValidPGN(const QString &pgn) {
 }
 
 // Function to parse a PGN chess game
-void EngineHandler::parsePgn(const QString& pgnString) {
+void BoardHandler::parsePgn(const QString& pgnString) {
     EngineTypes::PgnData pgn_data;
     QStringList lines = pgnString.split('\n');
     QString moveText;
@@ -95,4 +95,22 @@ void EngineHandler::parsePgn(const QString& pgnString) {
         qDebug()<<"PGN not Valid";
         //what to do????
     }
+}
+
+void BoardHandler::setFEN(QString& fen) {
+    // This function should set the FEN string to the chess engine.
+    // For now, we will just print the FEN to debug output.
+    qDebug() << "Setting FEN:" << fen;
+
+    // Here you would typically set the FEN in your chess engine or game state.
+    // For example:
+    // chessEngine.setFEN(fen);
+}
+
+
+void BoardHandler::getFEN() {
+    // This function should return the current FEN string in the chess board
+    // For now, we will just emit a signal with a placeholder value.
+    QString fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"; // Placeholder FEN
+    emit fenReady(fen);
 }

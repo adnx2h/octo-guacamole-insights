@@ -37,7 +37,7 @@ Item {
             onClicked: {
                 console.log("Analyzing PGN:")
                 sgnBtnAnalysisClicked()
-                id_engineHandler.parsePgn(id_pgnInput.text)
+                id_boardHandler.parsePgn(id_pgnInput.text)
             }
         }
     }

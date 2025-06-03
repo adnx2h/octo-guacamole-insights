@@ -1,9 +1,9 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QQmlContext> // Needed for setContextProperty
-#include "Middleware/engineHandler/EngineHandler.h"
-#include "Middleware/engineHandler/MovesListModel.h"
-#include "Middleware/engineHandler/EngineTypes.h" // Needed for qmlRegisterType<EngineTypes::MoveItem>
+#include "Middleware/boardHandler/BoardHandler.h"
+#include "Middleware/boardHandler/MovesListModel.h"
+#include "Middleware/boardHandler/EngineTypes.h" // Needed for qmlRegisterType<EngineTypes::MoveItem>
 
 int main(int argc, char *argv[])
 {
@@ -17,16 +17,16 @@ int main(int argc, char *argv[])
     // 1. Instantiate your C++ objects
     // It's good practice to set a parent for objects that are part of the application hierarchy,
     // so they are automatically deleted when the parent is deleted (e.g., the QGuiApplication).
-    EngineHandler *engineHandler = new EngineHandler(&app);
+    BoardHandler *boardHandler = new BoardHandler(&app);
     MovesListModel *movesListModel = new MovesListModel(&app); // <-- Create an instance of your model!
 
     // Register the C++ object with QML
-    context->setContextProperty("id_engineHandler", engineHandler); // Pass the pointer
+    context->setContextProperty("id_boardHandler", boardHandler); // Pass the pointer
     context->setContextProperty("movesModel", movesListModel);     // <-- Expose your MovesListModel!
 
-    // 2. Connect the signal from EngineHandler to the slot in MovesListModel
-    // When EngineHandler emits rawMovesListReady, MovesListModel::processMoves will be called.
-    QObject::connect(engineHandler, &EngineHandler::rawMovesListReady,
+    // 2. Connect the signal from BoardHandler to the slot in MovesListModel
+    // When BoardHandler emits rawMovesListReady, MovesListModel::processMoves will be called.
+    QObject::connect(boardHandler, &BoardHandler::rawMovesListReady,
                      movesListModel, &MovesListModel::processMoves);
 
     // Register MoveItem and MovesListModel with QML (these lines are already good)

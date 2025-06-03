@@ -24,9 +24,10 @@ qt_add_qml_module(appChess
     QML_FILES qml/Main.qml
     QML_FILES qml/ChessBoard.qml
     RESOURCES qml.qrc
-    SOURCES Middleware/engineHandler/EngineHandler.h Middleware/engineHandler/EngineHandler.cpp
-    SOURCES Middleware/engineHandler/EngineTypes.h
-    SOURCES Middleware/engineHandler/MovesListModel.h Middleware/engineHandler/MovesListModel.cpp
+    SOURCES Middleware/boardHandler/BoardHandler.h Middleware/boardHandler/BoardHandler.cpp
+    SOURCES Middleware/boardHandler/EngineTypes.h
+    SOURCES Middleware/boardHandler/MovesListModel.h Middleware/boardHandler/MovesListModel.cpp
+    SOURCES
 )
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an
