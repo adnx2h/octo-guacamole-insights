@@ -5,7 +5,7 @@
 #include <QObject>
 #include <QStringList>
 #include <QDebug>
-#include "EngineTypes.h" // Ensure EngineTypes::MoveItem is defined here and Q_OBJECT
+#include "BoardTypes.h"
 
 class MovesListModel : public QAbstractListModel
 {
@@ -30,7 +30,7 @@ public:
     Q_INVOKABLE void processMoves(const QStringList& rawMoves);
 
 private:
-    QList<EngineTypes::MoveItem*> m_moveItems;
+    QList<BoardTypes::MoveItem*> m_moveItems;
 };
 
 #endif // MOVESLISTMODEL_H

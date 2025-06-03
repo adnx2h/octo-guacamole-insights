@@ -17,7 +17,7 @@ QVariant MovesListModel::data(const QModelIndex &index, int role) const
     if (!index.isValid() || index.row() >= m_moveItems.size())
         return QVariant();
 
-    EngineTypes::MoveItem* item = m_moveItems.at(index.row());
+    BoardTypes::MoveItem* item = m_moveItems.at(index.row());
     if (!item) return QVariant();
 
     switch (role) {
@@ -56,7 +56,7 @@ void MovesListModel::processMoves(const QStringList& rawMoves)
         QString whiteMove = rawMoves.at(i);
         QString blackMove = (i + 1 < rawMoves.count()) ? rawMoves.at(i + 1) : "";
 
-        m_moveItems.append(new EngineTypes::MoveItem(moveNumber, whiteMove, blackMove, this));
+        m_moveItems.append(new BoardTypes::MoveItem(moveNumber, whiteMove, blackMove, this));
     }
 
     endResetModel();

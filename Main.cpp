@@ -3,7 +3,7 @@
 #include <QQmlContext> // Needed for setContextProperty
 #include "Middleware/boardHandler/BoardHandler.h"
 #include "Middleware/boardHandler/MovesListModel.h"
-#include "Middleware/boardHandler/EngineTypes.h" // Needed for qmlRegisterType<EngineTypes::MoveItem>
+#include "Middleware/boardHandler/BoardTypes.h"
 
 int main(int argc, char *argv[])
 {
@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
                      movesListModel, &MovesListModel::processMoves);
 
     // Register MoveItem and MovesListModel with QML (these lines are already good)
-    qmlRegisterType<EngineTypes::MoveItem>("PGN_movesModule", 1, 0, "MoveItem");
+    qmlRegisterType<BoardTypes::MoveItem>("PGN_movesModule", 1, 0, "MoveItem");
     qmlRegisterType<MovesListModel>("PGN_movesModule", 1, 0, "MovesListModel");
 
     QObject::connect(

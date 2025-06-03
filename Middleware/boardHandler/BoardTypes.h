@@ -1,5 +1,5 @@
-#ifndef ENGINETYPES_H
-#define ENGINETYPES_H
+#ifndef BOARDTYPES_H
+#define BOARDTYPES_H
 
 #include <QMap>
 #include <QStringList>
@@ -8,7 +8,7 @@
 #include <QObject>
 
 // Structure to hold the parsed PGN data
-namespace EngineTypes{
+namespace BoardTypes{
 
 struct PgnData {
     QMap<QString, QString> tags;
@@ -68,6 +68,6 @@ private:
     QString m_blackMove;
 };
 
-} // namespace EngineTypes
+} // namespace BoardTypes
 
-#endif // ENGINETYPES_H
+#endif // BOARDTYPES_H

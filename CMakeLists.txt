@@ -25,7 +25,7 @@ qt_add_qml_module(appChess
     QML_FILES qml/ChessBoard.qml
     RESOURCES qml.qrc
     SOURCES Middleware/boardHandler/BoardHandler.h Middleware/boardHandler/BoardHandler.cpp
-    SOURCES Middleware/boardHandler/EngineTypes.h
+    SOURCES Middleware/boardHandler/BoardTypes.h
     SOURCES Middleware/boardHandler/MovesListModel.h Middleware/boardHandler/MovesListModel.cpp
     SOURCES
 )

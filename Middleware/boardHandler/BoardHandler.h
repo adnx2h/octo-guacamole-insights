@@ -3,7 +3,7 @@
 
 #include <QObject>
 #include <QMap>
-#include "EngineTypes.h"
+#include "BoardTypes.h"
 
 class BoardHandler : public QObject
 {

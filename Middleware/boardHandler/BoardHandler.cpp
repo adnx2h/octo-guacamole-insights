@@ -40,7 +40,7 @@ bool BoardHandler::isValidPGN(const QString &pgn) {
 
 // Function to parse a PGN chess game
 void BoardHandler::parsePgn(const QString& pgnString) {
-    EngineTypes::PgnData pgn_data;
+    BoardTypes::PgnData pgn_data;
     QStringList lines = pgnString.split('\n');
     QString moveText;
     QString result; // To store the game result
