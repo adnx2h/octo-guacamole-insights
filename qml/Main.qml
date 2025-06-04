@@ -7,8 +7,10 @@ import "board_utils.js" as BoardUtils
 import QtQuick.Layouts 1
 
 ApplicationWindow {
+    id: id_appWindow
     width: 500
-    height: Screen.height
+    // height: Screen.height
+    height: 1000
     visible: true
     title: qsTr("Chess PGN Analyzer")
 

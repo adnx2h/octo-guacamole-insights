@@ -5,8 +5,8 @@ import PGN_movesModule 1.0
 
 Item{
     id: id_AnalysisScreen
-    width: 500 //find the right value
-    height: Screen.height
+    width: id_appWindow.width
+    height: id_appWindow.height
     visible: false
     signal sgnBtnSettingsClicked()
 
@@ -31,17 +31,17 @@ Item{
 
     ChessBoard {
         id: id_analysisChessBoard
-              x: 0 // Start from the left edge of AnalysisScreen
-              y: id_rowLayout_top_bar.height // Position it right below the top bar
-              width: id_AnalysisScreen.width // Make the chessboard take the full width of AnalysisScreen
-              height: width // Keep the chessboard square
+        x: 0 // Start from the left edge of AnalysisScreen
+        y: id_rowLayout_top_bar.height // Position it right below the top bar
+        width: id_AnalysisScreen.width // Make the chessboard take the full width of AnalysisScreen
+        height: width // Keep the chessboard square
 
-              // I can change these values later if you want a smaller board,
-              // e.g., width: id_AnalysisScreen.width * 0.8, x: (id_AnalysisScreen.width - width) / 2
+        // I can change these values later if you want a smaller board,
+        // e.g., width: id_AnalysisScreen.width * 0.8, x: (id_AnalysisScreen.width - width) / 2
     }
 
     TextArea {
-        id: idTextArea_description
+        id: id_TextArea_description
         width: parent.width
         anchors.bottom: id_movementsContainer.top
         anchors.top: id_analysisChessBoard.bottom
@@ -78,7 +78,9 @@ Item{
             visible: true
 
             delegate: Item {
-                width: parent.width
+                //Conditinoally set width based on parents available width, to prevent this log error:
+                // qrc:/qt/qml/Chess/qml/AnalysisScreen.qml:81:17: TypeError: Cannot read property 'width' of null
+                width: parent ? parent.width : 0
                 height: 30
                 Rectangle { // The background rectangle for each line
                     width: parent.width

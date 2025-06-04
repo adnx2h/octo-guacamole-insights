@@ -5,8 +5,8 @@ import QtQuick.Layouts 1
 
 Item {
     id: id_InitialScreen
-    width: 500
-    height: Screen.height
+    width: id_appWindow.width
+    height: id_appWindow.height
     visible: false
 
     signal sgnBtnAnalysisClicked()
