@@ -147,6 +147,7 @@ Item{
             Layout.fillHeight: true
             onClicked: {
                 console.log("Previous move");
+                id_boardHandler.previousMove();
             }
         }
         Item {
@@ -159,6 +160,7 @@ Item{
             Layout.fillHeight: true
             onClicked: {
                 console.log("Next move");
+                id_boardHandler.nextMove();
             }
         }
         Item {

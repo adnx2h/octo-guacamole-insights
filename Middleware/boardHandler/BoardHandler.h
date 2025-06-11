@@ -16,6 +16,8 @@ public:
     Q_INVOKABLE void parsePgn(const QString& pgnString);
     Q_INVOKABLE void setFEN(QString& fen);
     Q_INVOKABLE void getFEN();
+    Q_INVOKABLE void previousMove();
+    Q_INVOKABLE void nextMove();
 private:
 
 signals:

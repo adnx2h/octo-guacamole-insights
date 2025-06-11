@@ -114,3 +114,11 @@ void BoardHandler::getFEN() {
     QString fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"; // Placeholder FEN
     emit fenReady(fen);
 }
+
+void BoardHandler::previousMove(){
+    qDebug()<<"Previous Move Requested";
+}
+
+void BoardHandler::nextMove(){
+    qDebug()<<"Next Move Requested";
+}
