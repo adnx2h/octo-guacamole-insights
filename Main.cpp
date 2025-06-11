@@ -1,6 +1,6 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
-#include <QQmlContext> // Needed for setContextProperty
+#include <QQmlContext> // Needed for setContextProperty.
 #include "Middleware/boardHandler/BoardHandler.h"
 #include "Middleware/boardHandler/MovesListModel.h"
 #include "Middleware/boardHandler/BoardTypes.h"
