@@ -10,7 +10,7 @@ ApplicationWindow {
     id: id_appWindow
     width: 500
     // height: Screen.height
-    height: 1000
+    height: 900
     visible: true
     title: qsTr("Chess PGN Analyzer")
 

@@ -19,40 +19,7 @@ Item {
 
     //pieces initial position
     Repeater {
-        model: [
-            { index: 0, piece: "bR" },
-            { index: 1, piece: "bN" },
-            { index: 2, piece: "bB" },
-            { index: 3, piece: "bQ" },
-            { index: 4, piece: "bK" },
-            { index: 5, piece: "bB" },
-            { index: 6, piece: "bN" },
-            { index: 7, piece: "bR" },
-            { index: 8, piece: "bP" },
-            { index: 9, piece: "bP" },
-            { index: 10, piece: "bP" },
-            { index: 11, piece: "bP" },
-            { index: 12, piece: "bP" },
-            { index: 13, piece: "bP" },
-            { index: 14, piece: "bP" },
-            { index: 15, piece: "bP" },
-            { index: 48, piece: "wP" },
-            { index: 49, piece: "wP" },
-            { index: 50, piece: "wP" },
-            { index: 51, piece: "wP" },
-            { index: 52, piece: "wP" },
-            { index: 53, piece: "wP" },
-            { index: 54, piece: "wP" },
-            { index: 55, piece: "wP" },
-            { index: 56, piece: "wR" },
-            { index: 57, piece: "wN" },
-            { index: 58, piece: "wB" },
-            { index: 59, piece: "wQ" },
-            { index: 60, piece: "wK" },
-            { index: 61, piece: "wB" },
-            { index: 62, piece: "wN" },
-            { index: 63, piece: "wR" }
-        ]
+        model: id_boardHandler.piecePositions
         delegate: pieceDelegate
     }
 
