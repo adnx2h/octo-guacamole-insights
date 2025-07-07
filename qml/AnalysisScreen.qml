@@ -33,11 +33,39 @@ Item {
             }
         }
 
-        // 2. Chess Board (Item)
-        ChessBoard {
-            id: id_analysisChessBoard
+        // 2. RowLayout for the custom Vertical Progress Bar and ChessBoard
+        RowLayout {
             Layout.fillWidth: true
-            Layout.preferredHeight: id_AnalysisScreen.width // Keep board square, use preferredHeight
+            Layout.fillHeight: true // Allows this RowLayout to take available vertical space
+
+            // Custom Vertical Progress Bar (using Rectangles to avoid 'orientation' property)
+            Rectangle {
+                id: id_evaluationBar_vertical
+                Layout.preferredWidth: 10 // Fixed small width for the bar
+                Layout.preferredHeight: id_analysisChessBoard.width  // Same height as the chessboard
+                color: "#E0E0E0" // Light grey background for the bar
+                border.color: "#A0A0A0"
+                border.width: 1
+
+                // Expose a 'value' property for easy control (0.0 to 1.0)
+                property real barFill: 0.3 // Example value (you can bind this to actual progress)
+
+                // The filling part of the progress bar
+                Rectangle {
+                    id: id_progressBar_fill
+                    width: parent.width
+                    height: parent.height * id_evaluationBar_vertical.barFill // Control fill height based on 'value'
+                    anchors.bottom: parent.bottom // The fill starts from the bottom
+                    color: "#60A060" // Greenish color for the filled portion
+                }
+            }
+
+            // Chess Board (Item)
+            ChessBoard {
+                id: id_analysisChessBoard
+                Layout.fillWidth: true
+                Layout.preferredHeight: width
+            }
         }
 
         // 3. Main bottom RowLayout containing the movements list and controls column
@@ -159,7 +187,7 @@ Item {
                         id: id_btn_Next
                         text: ">"
                         Layout.fillWidth: true
-                        Layout.fillHeight: true
+                        Layout.fillHeight: true // Will fill the parent's preferredHeight
                         onClicked: {
                             console.log("Next move");
                             id_boardHandler.nextMove();
