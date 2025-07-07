@@ -8,9 +8,9 @@ import QtQuick.Layouts 1
 
 ApplicationWindow {
     id: id_appWindow
-    width: 500
+    width: 450
     // height: Screen.height
-    height: 900
+    height: 700
     visible: true
     title: qsTr("Chess PGN Analyzer")
 

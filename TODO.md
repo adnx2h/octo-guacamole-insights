@@ -24,15 +24,15 @@ Engine Integration:
 [ ] Install Win/Linux Engine
 [ ] Define engine communication protocol (UCI/XBoard parsing).
 [ ] Handle engine output parsing (best move, evaluation, PV).
-[ ] Implement next and back buttons using engine and list of moves.
+[X] Implement next and back buttons using engine and list of moves.
 [ ] Install Android Engine
 [ ] Consider multi-threading for engine thinking (to keep GUI responsive).
 [ ] Add option to play against AI or AI vs. AI.
 
 Platform Specifics:
 [ ] Conditional compilation for Android (Android-Linux/Windows)
-[ ] Install Android Engine and simulator Windows
-[ ] Set up Android build environment correctly (SDK, NDK, etc.). QCreator Windows
+[X] Install Android Engine and simulator Windows
+[X] Set up Android build environment correctly (SDK, NDK, etc.). QCreator Windows
 [x] Set up Android build environment correctly (SDK, NDK, etc.). QCreator Linux
 
 AI Integration:
