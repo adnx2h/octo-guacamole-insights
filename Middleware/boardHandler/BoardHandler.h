@@ -5,6 +5,7 @@
 #include <QMap>
 #include "BoardTypes.h"
 #include "QQueue"
+#include <QStringList>
 
 #include <QVariantList> // To hold a list of QVariantMap for pieces
 #include <QVariantMap>  // To hold piece data (index, piece string)
@@ -23,7 +24,7 @@ public:
     Q_INVOKABLE void parsePgn(const QString& pgnString);
     Q_INVOKABLE void setFEN(QString& fen);
     Q_INVOKABLE void getFEN();
-    Q_INVOKABLE void previousMove();
+    Q_INVOKABLE void prevMove();
     Q_INVOKABLE void nextMove();
 
     /**
@@ -37,11 +38,12 @@ public:
      * This method is Q_INVOKABLE so it can be called from QML.
      */
     Q_INVOKABLE void resetBoard();
+    void newEvaluation(int);
 
-    // You can add more Q_INVOKABLE methods here for board interaction from QML,
-    // e.g., making moves. Example commented out below:
-    // Q_INVOKABLE void makeMove(int fromIndex, int toIndex, const QString& promotionPiece = "");
 private:
+    QStringList uciMovesList;
+    QList<int> m_movesEvaluations;
+    void toUciMove(chess::Move);
     bool isValidPGN(const QString &pgn);
     chess::Board m_board; // The underlying chess board object from chess.hpp
     /**
@@ -68,6 +70,10 @@ signals:
     void fenReady(const QString& fen);
     void setDefaultPosition();
     void piecePositionsChanged();
+    void sgn_startEngine();
+    void sgn_analyzeNewMove(std::string);
+    void sgn_uciMovesReady(QStringList);
+    void sgn_evalPositionsChanged(int newEval);
 };
 
 #endif // BOARDHANDLER_H

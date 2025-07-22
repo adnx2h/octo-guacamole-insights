@@ -7,11 +7,11 @@ High Priority
 [x] Read and parse PGN
 [x] Display list of moves
 [x] Add Pieces to the board at initial position
-[ ] Parse FEN
+[X] Parse FEN
 [ ] Add pieces to any FEN
 
 User Interface (UI) / User Experience (UX):
-[ ] Add evaluation bar
+[X] Add evaluation bar
 [ ] Show last move indicator (e.g., colored squares).
 [ ] Add drag-and-drop functionality for pieces.
 [ ] Support different board themes/colors.
@@ -21,12 +21,14 @@ User Interface (UI) / User Experience (UX):
 [ ] Format move description textbox
 
 Engine Integration:
-[ ] Install Win/Linux Engine
-[ ] Define engine communication protocol (UCI/XBoard parsing).
-[ ] Handle engine output parsing (best move, evaluation, PV).
+[X] build stockfish and add it to the PATH. 
+	makefish.sh 
+	(https://official-stockfish.github.io/docs/stockfish-wiki/Compiling-from-source.html#compilers) 
+[X] Define engine communication protocol (UCI/XBoard parsing).
+[X] Handle engine output parsing (best move, evaluation, PV).
 [X] Implement next and back buttons using engine and list of moves.
 [ ] Install Android Engine
-[ ] Consider multi-threading for engine thinking (to keep GUI responsive).
+[X] Consider multi-threading for engine thinking (to keep GUI responsive).
 [ ] Add option to play against AI or AI vs. AI.
 
 Platform Specifics:

@@ -40,7 +40,7 @@ Item {
 
             // Custom Vertical Progress Bar (using Rectangles to avoid 'orientation' property)
             Rectangle {
-                id: id_evaluationBar_vertical
+                id: id_whiteEvaluationBar
                 Layout.preferredWidth: 10 // Fixed small width for the bar
                 Layout.preferredHeight: id_analysisChessBoard.width  // Same height as the chessboard
                 color: "#E0E0E0" // Light grey background for the bar
@@ -48,13 +48,13 @@ Item {
                 border.width: 1
 
                 // Expose a 'value' property for easy control (0.0 to 1.0)
-                property real barFill: 0.3 // Example value (you can bind this to actual progress)
+                property real whiteAdvantage: 0.5 // Example value
 
                 // The filling part of the progress bar
                 Rectangle {
-                    id: id_progressBar_fill
+                    id: id_blackEvaluationBar
                     width: parent.width
-                    height: parent.height * id_evaluationBar_vertical.barFill // Control fill height based on 'value'
+                    height: parent.height * id_whiteEvaluationBar.whiteAdvantage // Control fill height based on 'value'
                     anchors.bottom: parent.bottom // The fill starts from the bottom
                     color: "#60A060" // Greenish color for the filled portion
                 }
@@ -180,7 +180,7 @@ Item {
                         Layout.fillHeight: true // Will fill the parent's preferredHeight
                         onClicked: {
                             console.log("Previous move");
-                            id_boardHandler.previousMove();
+                            id_boardHandler.prevMove();
                         }
                     }
                     Button {
@@ -195,6 +195,14 @@ Item {
                     }
                 }
             }
+        }
+    }
+    Connections {
+        target: id_boardHandler
+        onSgn_evalPositionsChanged: {
+            console.log("Evaluation is:  " + newEval )
+            var whiteHeightRatio = (newEval + 100) / 200; // Normalize -100 to 100 to 0 to 1
+            id_whiteEvaluationBar.whiteAdvantage =  whiteHeightRatio
         }
     }
 }

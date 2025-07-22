@@ -10,6 +10,10 @@ BoardHandler::BoardHandler(QObject *parent)
     moveIndex = -1;
 }
 
+void BoardHandler::newEvaluation(int ev){
+    m_movesEvaluations.append(ev);
+}
+
 bool BoardHandler::isValidPGN(const QString &pgn) {
     // PGN validation using regular expressions
     //  Check for White/Black tags, and result.
@@ -50,6 +54,8 @@ void BoardHandler::parsePgn(const QString& pgnString) {
     QMap<QString, QString> tags;
     QList<QString> moves;
 
+    emit sgn_startEngine();
+
     if(isValidPGN(pgnString)){
         qDebug() << "PGN Valid";
         QRegularExpression moveOnlyRegex("([^\\s.]+)(?=\\s+|$)");
@@ -87,6 +93,7 @@ void BoardHandler::parsePgn(const QString& pgnString) {
             chess::Move mo = chess::uci::parseSan(tempBoard,san.toStdString());
             movesObject.moves.append(mo);
             tempBoard.makeMove(mo);
+            toUciMove(mo);
         }
         m_board = tempBoard;
         m_board = chess::Board(); //reset the board
@@ -100,6 +107,8 @@ void BoardHandler::parsePgn(const QString& pgnString) {
         // emit tagsReady(pgn_data.tags);
         // emit resultReady(pgn_data.result);
         emit setDefaultPosition();
+        // emit sgn_startEngine();
+        emit sgn_uciMovesReady(uciMovesList);
     }
     else{
         qDebug()<<"PGN not Valid";
@@ -124,7 +133,7 @@ void BoardHandler::getFEN() {
     emit fenReady(fen);
 }
 
-void BoardHandler::previousMove(){
+void BoardHandler::prevMove(){
     if (moveIndex >= 0) {
         const chess::Move moveToUnmake = movesObject.moves.at(moveIndex);
         m_board.unmakeMove(moveToUnmake);
@@ -137,12 +146,25 @@ void BoardHandler::previousMove(){
     }
 }
 
+void BoardHandler::toUciMove(chess::Move move){
+    chess::Square from = move.from();
+    chess::Square to = move.to();
+
+    std::string fromStr = static_cast<std::string>(from);
+    std::string toStr = static_cast<std::string>(to);
+
+    QString uciMove = QString::fromStdString(fromStr + toStr);
+    uciMovesList.append(uciMove);
+}
+
 void BoardHandler::nextMove(){
     if (moveIndex < (int)movesObject.moves.size() - 1) {
         moveIndex++;
         const chess::Move moveToMake = movesObject.moves.at(moveIndex);
         m_board.makeMove(moveToMake);
         emit piecePositionsChanged();
+        emit sgn_evalPositionsChanged(m_movesEvaluations.at(moveIndex));
+
         qDebug() << "Next Move Requested";
     } else {
         qDebug() << "No More Moves (already at the end of the game).";
