@@ -219,7 +219,10 @@ QVariantList BoardHandler::generatePiecePositions() const
 
         if (piece != chess::Piece::NONE) { // If there is a piece on this square
             QVariantMap pieceMap;
-            pieceMap["index"] = i;
+            int file = i % 8;
+            int rank = i / 8;
+            int qmlIndex = (7 - rank) * 8 + file; //maps a8 index 0, a1 index 56, h8 index 7, h1 index 63
+            pieceMap["index"] = qmlIndex;
             pieceMap["piece"] = pieceToString(piece); // Convert to QML-friendly string
             positions.append(pieceMap);
         }
