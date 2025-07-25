@@ -69,7 +69,6 @@ void EngineHandler::sendCommand(const QString& command)
     }
 }
 
-// New method to initiate analysis
 void EngineHandler::analyzePosition(const QString& fen, const QString& moves)
 {
     if (stockfishProcess->state() != QProcess::Running) {
@@ -112,10 +111,6 @@ void EngineHandler::processNextQueuedAnalysis(){
         QString nextMove = m_uciCumulativeMoves.dequeue();
         m_isStockfishBusy=true;
         analyzePosition("startpos", nextMove);
-        // foreach (QString move, m_uciCumulativeMoves) {
-        //     analyzePosition("startpos", move);
-        //     QThread::msleep(ANALYSIS_TIME + 200);
-        // }
     }
 }
 
@@ -133,11 +128,6 @@ void EngineHandler::readStandardOutput()
 
         // Parse for evaluation (cp or mate)
         if (line.startsWith("info")) {
-            // int currentCp = 0;
-            // int currentMate = 0;
-            // bool foundCp = false;
-            // bool foundMate = false;
-
             QRegularExpressionMatch cpMatch = cpRegex.match(line);
             if (cpMatch.hasMatch()) {
                 currentCp = cpMatch.captured(1).toInt();
@@ -151,12 +141,6 @@ void EngineHandler::readStandardOutput()
             }
 
             if (foundCp || foundMate) {
-                // normalizedEval = normalizeEvaluation(currentCp, currentMate);
-                // emit sgn_newEvaluation(normalizedEval);
-                // if(areAllMovesEvaluated){
-                // emit sgn_newEvaluation(normalizedEval);
-                // emit evaluationChanged(normalizedEval);
-                // }
             }
         } else if (line.contains("uciok")) {
             sendCommand("isready");

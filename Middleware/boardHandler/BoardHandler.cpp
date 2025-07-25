@@ -139,22 +139,12 @@ void BoardHandler::prevMove(){
         m_board.unmakeMove(moveToUnmake);
         moveIndex--;
         emit piecePositionsChanged();
+        emit sgn_evalPositionsChanged(m_movesEvaluations.at(moveIndex));
 
         qDebug() << "Previous Move Requested";
     } else {
         qDebug() << "Already at the beginning of the game (initial board state).";
     }
-}
-
-void BoardHandler::toUciMove(chess::Move move){
-    chess::Square from = move.from();
-    chess::Square to = move.to();
-
-    std::string fromStr = static_cast<std::string>(from);
-    std::string toStr = static_cast<std::string>(to);
-
-    QString uciMove = QString::fromStdString(fromStr + toStr);
-    uciMovesList.append(uciMove);
 }
 
 void BoardHandler::nextMove(){
@@ -169,6 +159,17 @@ void BoardHandler::nextMove(){
     } else {
         qDebug() << "No More Moves (already at the end of the game).";
     }
+}
+
+void BoardHandler::toUciMove(chess::Move move){
+    chess::Square from = move.from();
+    chess::Square to = move.to();
+
+    std::string fromStr = static_cast<std::string>(from);
+    std::string toStr = static_cast<std::string>(to);
+
+    QString uciMove = QString::fromStdString(fromStr + toStr);
+    uciMovesList.append(uciMove);
 }
 
 ////here starts the chess proxy

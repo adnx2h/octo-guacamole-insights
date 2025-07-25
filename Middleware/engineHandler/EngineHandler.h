@@ -27,6 +27,7 @@ public:
     void uciMovesReceived(QStringList);
 
     const int ANALYSIS_TIME_VALUE = 500;
+    //Do not modify next 2 lines
     const QString ANALYSIS_TIME_STRING = QString::number(ANALYSIS_TIME_VALUE);
     const int ANALYSIS_TIME = ANALYSIS_TIME_VALUE;
 
