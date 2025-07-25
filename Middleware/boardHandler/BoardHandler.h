@@ -37,33 +37,29 @@ public:
      * @brief Resets the chess board to its initial starting position.
      * This method is Q_INVOKABLE so it can be called from QML.
      */
-    Q_INVOKABLE void resetBoard();
+    Q_INVOKABLE void initializeBoard();
     void newEvaluation(int);
 
 private:
     QStringList uciMovesList;
     QList<int> m_movesEvaluations;
+    int m_moveIndex;
     void toUciMove(chess::Move);
     bool isValidPGN(const QString &pgn);
-    chess::Board m_board; // The underlying chess board object from chess.hpp
+    BoardTypes::PgnData pgn_data;
+    chess::Board tempBoard;
+    chess::Board m_board;
     /**
      * @brief Helper function to convert the internal chess::Board state to a QML-friendly QVariantList.
      * @return A QVariantList of QVariantMaps, each containing "index" and "piece" (e.g., "wR", "bP").
      */
     QVariantList generatePiecePositions() const;
 
-    /**
-     * @brief Helper function to convert a chess::Piece object to its QML string representation.
-     * @param piece The chess::Piece object.
-     * @return A QString like "wR" for white rook, "bP" for black pawn, or empty if no piece.
-     */
     QString pieceToString(chess::Piece piece) const;
-    int moveIndex;
-    BoardTypes::PgnData pgn_data;
-    chess::Board tempBoard;
+    
     struct MovesObject {
         QVector<chess::Move> moves;
-    } movesObject;
+    } m_movesObject;
 
 signals:
     void rawMovesListReady(const QStringList& moves);

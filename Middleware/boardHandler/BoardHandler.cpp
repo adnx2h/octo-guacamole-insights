@@ -5,9 +5,6 @@
 BoardHandler::BoardHandler(QObject *parent)
     : QObject{parent}
 {
-    // Initialize the chess board to default position
-    m_board= chess::Board(chess::constants::STARTPOS,false);
-    moveIndex = -1;
 }
 
 void BoardHandler::newEvaluation(int ev){
@@ -54,6 +51,9 @@ void BoardHandler::parsePgn(const QString& pgnString) {
     QMap<QString, QString> tags;
     QList<QString> moves;
 
+    // Initialize the board to the starting position
+    initializeBoard();
+
     emit sgn_startEngine();
 
     if(isValidPGN(pgnString)){
@@ -91,7 +91,7 @@ void BoardHandler::parsePgn(const QString& pgnString) {
             moves.append(san);
 
             chess::Move mo = chess::uci::parseSan(tempBoard,san.toStdString());
-            movesObject.moves.append(mo);
+            m_movesObject.moves.append(mo);
             tempBoard.makeMove(mo);
             toUciMove(mo);
         }
@@ -134,28 +134,33 @@ void BoardHandler::getFEN() {
 }
 
 void BoardHandler::prevMove(){
-    if (moveIndex >= 0) {
-        const chess::Move moveToUnmake = movesObject.moves.at(moveIndex);
+    if (m_moveIndex >= 0) {
+        const chess::Move moveToUnmake = m_movesObject.moves.at(m_moveIndex);
         m_board.unmakeMove(moveToUnmake);
-        moveIndex--;
+        m_moveIndex--;
         emit piecePositionsChanged();
-        emit sgn_evalPositionsChanged(m_movesEvaluations.at(moveIndex));
-
-        qDebug() << "Previous Move Requested";
+        qDebug() << "Prev Move: Index:" << m_moveIndex;
+        if(m_moveIndex >= 0){
+            emit sgn_evalPositionsChanged(m_movesEvaluations.at(m_moveIndex));
+            qDebug() <<"Eval: "<<m_movesEvaluations.at(m_moveIndex);
+        }else{
+            emit sgn_evalPositionsChanged(0);
+            qDebug() <<"Eval: "<<0;
+        }
     } else {
         qDebug() << "Already at the beginning of the game (initial board state).";
     }
 }
 
 void BoardHandler::nextMove(){
-    if (moveIndex < (int)movesObject.moves.size() - 1) {
-        moveIndex++;
-        const chess::Move moveToMake = movesObject.moves.at(moveIndex);
+    if (m_moveIndex < (int)m_movesObject.moves.size() - 1) {
+        m_moveIndex++;
+        const chess::Move moveToMake = m_movesObject.moves.at(m_moveIndex);
         m_board.makeMove(moveToMake);
         emit piecePositionsChanged();
-        emit sgn_evalPositionsChanged(m_movesEvaluations.at(moveIndex));
+        emit sgn_evalPositionsChanged(m_movesEvaluations.at(m_moveIndex));
 
-        qDebug() << "Next Move Requested";
+        qDebug() << "Next Move: Index:" << m_moveIndex << "Evaluation:" << m_movesEvaluations.at(m_moveIndex);
     } else {
         qDebug() << "No More Moves (already at the end of the game).";
     }
@@ -178,9 +183,13 @@ QVariantList BoardHandler::piecePositions() const
     return generatePiecePositions();
 }
 
-void BoardHandler::resetBoard()
+void BoardHandler::initializeBoard()
 {
-    m_board = chess::Board(); // Re-initializes the board to the starting position
+    m_board= chess::Board(chess::constants::STARTPOS,false); //initializes the board to the starting position
+    tempBoard = chess::Board(chess::constants::STARTPOS,false);
+    m_moveIndex = -1;
+    m_movesObject.moves.clear();
+    m_movesEvaluations.clear();
     emit piecePositionsChanged(); // Notify QML that the data has changed
 }
 
