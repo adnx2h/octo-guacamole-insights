@@ -43,8 +43,7 @@ Item {
                 id: id_whiteEvaluationBar
                 Layout.preferredWidth: 10 // Fixed small width for the bar
                 Layout.preferredHeight: id_analysisChessBoard.width  // Same height as the chessboard
-                color: "#E0E0E0" // Light grey background for the bar
-                border.color: "#A0A0A0"
+                color: "#60A060" // Greenish color for the filled portion
                 border.width: 1
 
                 // Expose a 'value' property for easy control (0.0 to 1.0)
@@ -56,7 +55,8 @@ Item {
                     width: parent.width
                     height: parent.height * id_whiteEvaluationBar.whiteAdvantage // Control fill height based on 'value'
                     anchors.bottom: parent.bottom // The fill starts from the bottom
-                    color: "#60A060" // Greenish color for the filled portion
+                    color: "#E0E0E0" // Light grey background for the bar f0d9b5
+                    border.color: "#A0A0A0"
                 }
             }
 
