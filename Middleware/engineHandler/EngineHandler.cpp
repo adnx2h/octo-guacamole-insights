@@ -22,6 +22,7 @@ EngineHandler::EngineHandler(QObject *parent) : QObject(parent)
             this, &EngineHandler::processErrorOccurred);
     connect(this, &EngineHandler::sgn_engineReady,
             this, &EngineHandler::processNextQueuedAnalysis);
+
     isAnalyzingPositionComplete = false;
     isEngineReady = false;
     m_isStockfishBusy = false;
@@ -60,7 +61,7 @@ void EngineHandler::stopEngine()
 void EngineHandler::sendCommand(const QString& command)
 {
     if (stockfishProcess->state() == QProcess::Running) {
-        qDebug() << "Sending command to Stockfish:" << command;
+        // qDebug() << "Sending command to Stockfish:" << command;
         stockfishProcess->write((command + "\n").toUtf8());
         stockfishProcess->waitForBytesWritten();
     } else {
@@ -121,9 +122,10 @@ void EngineHandler::readStandardOutput()
     // Append to buffer for multi-line parsing if needed, or process line by line
     // For evaluation, we often get multiple 'info' lines, so processing each line is good.
     QStringList lines = output.split('\n', Qt::SkipEmptyParts);
+    static int counter =0;
 
     for (const QString& line : lines) {
-        qDebug() << "Stockfish Line:" << line;
+        // qDebug() << "Stockfish Line:" << line;
         emit engineOutputReady(line); // Emit raw line for general logging
 
         // Parse for evaluation (cp or mate)
@@ -148,10 +150,13 @@ void EngineHandler::readStandardOutput()
             isEngineReady = true;
             emit sgn_engineReady();
         } else if (line.startsWith("bestmove")) {
-            qDebug() << "Best move from engine:" << line;
+            // qDebug() << "Best move from engine:" << line;
             if(isEngineReady){
+
                 if (foundCp || foundMate) {
                     normalizedEval = normalizeEvaluation(currentCp, currentMate);
+                    qDebug()<<counter<< "cp: "<<currentCp <<" normal: "<< normalizedEval;
+                    counter++;
                     emit sgn_newEvaluation(normalizedEval); //sends the new evaluation to boardhandler
                     m_isStockfishBusy = false;
                     processNextQueuedAnalysis();
@@ -194,24 +199,37 @@ void EngineHandler::processErrorOccurred(QProcess::ProcessError error)
 // This is a simplified mapping. Real chess engines can have very high CPs.
 // Mate in N is a special case.
 int EngineHandler::normalizeEvaluation(int cp, int mate) {
-    // A simplified mapping for centipawns:
-    // Map +/- 1000 centipawns (10 pawns) to +/- 50% of the bar.
-    // Values beyond this will saturate.
-    const int maxCpForNormalization = 1000; // 10 pawns
-
+    // Checkmate always results in a full bar
     if (mate != 0) {
-        // Mate in N moves:
-        // Positive mate means White wins, negative means Black wins.
-        // For mate, we want to show a strong win/loss.
-        // Let's say mate in 1-2 moves is +/- 100 (full bar), mate in 3-5 is +/- 90, etc.
-        // Or simply, any mate is a full bar.
-        if (mate > 0) return 100; // White wins
-        else return -100; // Black wins
-    } else {
-        // Centipawns:
-        // Normalize cp to a range of -100 to 100.
-        // Clamp the value to avoid extreme numbers skewing the bar too much.
-        int clampedCp = qBound(-maxCpForNormalization, cp, maxCpForNormalization);
-        return static_cast<int>((double)clampedCp / maxCpForNormalization * 100);
+        return (mate > 0) ? 100 : -100;
     }
+
+    // A good, standard way to handle centipawns is to use a non-linear scale.
+    // The evaluation is most sensitive near 0, and less sensitive as the
+    // advantage becomes larger. A simple logarithmic-like scale works well.
+    // Values are in centipawns (100 cp = 1 pawn).
+
+    // You can define a maximum cp value for normalization, but
+    // a non-linear approach makes it so you don't need a hard clamp.
+    const int maxCpForNormalization = 800; // A strong winning position
+
+    int sign = (cp >= 0) ? 1 : -1;
+    int absCp = abs(cp);
+
+    // This is a simplified, non-linear mapping. It is not exactly what
+    // Chess.com uses but provides a similar feel.
+    // It's a logarithmic-like curve that flattens out.
+    // It emphasizes small advantages and reduces the impact of huge ones.
+
+    int normalizedValue;
+    if (absCp < 100) { // Small advantage (up to 1 pawn)
+        normalizedValue = (absCp * 20) / 100; // Map 100 cp to 20%
+    } else if (absCp < 400) { // Clear advantage (1 to 4 pawns)
+        normalizedValue = 20 + ((absCp - 100) * 30) / 300; // Map 400 cp to 50%
+    } else { // Decisive advantage (4+ pawns)
+        normalizedValue = 50 + ((absCp - 400) * 50) / maxCpForNormalization; // Map 1200 cp to 100%
+        normalizedValue = qBound(0, normalizedValue, 100);
+    }
+
+    return sign * normalizedValue;
 }

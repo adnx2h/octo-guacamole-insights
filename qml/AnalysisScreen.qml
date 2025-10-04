@@ -152,16 +152,22 @@ Item {
 
                 // i) Text Area
                 TextArea {
-                    id: id_TextArea_description
+                    id: id_TextArea_explanation
                     Layout.fillWidth: true
                     Layout.fillHeight: true // Fill available height in the column
                     readOnly: false
                     text: "Move analysis here..."
                     font.pixelSize: 18
+                    wrapMode: Text.WordWrap
                     background: Rectangle {
                         color: "grey"
                         border.width: 2
                         radius: 5
+                    }
+                    ScrollBar.vertical: ScrollBar {
+                        policy: ScrollBar.AlwaysOn // Always show the scrollbar
+                        width: 12                  // Optional: make it wider
+                        anchors.right: parent.right // Ensure it's on the right edge
                     }
                 }
 
@@ -179,8 +185,12 @@ Item {
                         Layout.fillWidth: true
                         Layout.fillHeight: true // Will fill the parent's preferredHeight
                         onClicked: {
+                            
                             console.log("Previous move");
                             id_boardHandler.prevMove();
+                            
+                            //for testing purposes only
+                            id_aiHandler.requestExplanation("startpos", "", 0);
                         }
                     }
                     Button {
@@ -203,6 +213,22 @@ Item {
             console.log("Evaluation is:  " + newEval )
             var whiteHeightRatio = (newEval + 100) / 200; // Normalize -100 to 100 to 0 to 1
             id_whiteEvaluationBar.whiteAdvantage =  whiteHeightRatio
+        }
+    }
+    // Property to track AI loading status
+    property bool explanationLoading: false
+    // Connections for AI explanation
+    Connections {
+        target: id_aiHandler
+        onMoveExplanationReady: {
+            id_TextArea_explanation.text = explanation;
+            loadingText.visible = false;
+        }
+        onExplanationRequestStatus: {
+            explanationLoading = isLoading;
+            if (isLoading) {
+                id_TextArea_explanation.text = ""; // Clear previous explanation
+            }
         }
     }
 }

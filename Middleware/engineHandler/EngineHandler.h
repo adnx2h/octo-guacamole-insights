@@ -6,7 +6,7 @@
 #include <QProcess>
 #include <QDebug>
 #include <QStringList>
-#include <QRegularExpression> // For parsing output
+#include <QRegularExpression>
 #include <QQueue>
 #include <QThread>
 

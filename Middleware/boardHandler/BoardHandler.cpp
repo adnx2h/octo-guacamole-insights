@@ -94,7 +94,10 @@ void BoardHandler::parsePgn(const QString& pgnString) {
             m_movesObject.moves.append(mo);
             tempBoard.makeMove(mo);
             toUciMove(mo);
+
+            emit sgn_newFen(QString::fromStdString(tempBoard.getFen()));
         }
+
         m_board = tempBoard;
         m_board = chess::Board(); //reset the board
         emit piecePositionsChanged(); // Update QML to show the initial board
@@ -175,6 +178,7 @@ void BoardHandler::toUciMove(chess::Move move){
 
     QString uciMove = QString::fromStdString(fromStr + toStr);
     uciMovesList.append(uciMove);
+    emit sgn_newUCIMove(uciMove);
 }
 
 ////here starts the chess proxy

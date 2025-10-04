@@ -70,6 +70,8 @@ signals:
     void sgn_analyzeNewMove(std::string);
     void sgn_uciMovesReady(QStringList);
     void sgn_evalPositionsChanged(int newEval);
+    void sgn_newUCIMove(QString uciMove);
+    void sgn_newFen(QString fen);
 };
 
 #endif // BOARDHANDLER_H
