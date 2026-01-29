@@ -113,6 +113,13 @@ void EngineHandler::processNextQueuedAnalysis(){
         m_isStockfishBusy=true;
         analyzePosition("startpos", nextMove);
     }
+    else if(m_uciCumulativeMoves.isEmpty()){
+        qDebug()<<"Stockfish analisis complete";
+        emit sgn_stockfishAnalysisComplete();
+    }
+    else{
+        qDebug()<<"Stockfish not ready or busy";
+    }
 }
 
 void EngineHandler::readStandardOutput()

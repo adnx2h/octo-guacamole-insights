@@ -40,6 +40,7 @@ signals:
     // 0 means equal.
     void evaluationChanged(int evaluation);
     void sgn_newEvaluation(int);
+    void sgn_stockfishAnalysisComplete();
 
 private slots:
     void readStandardOutput();

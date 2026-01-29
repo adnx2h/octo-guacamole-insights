@@ -190,7 +190,7 @@ Item {
                             id_boardHandler.prevMove();
                             
                             //for testing purposes only
-                            id_aiHandler.requestExplanation("startpos", "", 0);
+                            // id_aiHandler.requestMoveExplanation("startpos", "", 0);
                         }
                     }
                     Button {
@@ -228,6 +228,12 @@ Item {
             explanationLoading = isLoading;
             if (isLoading) {
                 id_TextArea_explanation.text = ""; // Clear previous explanation
+            }
+        }
+        onGameExplanationReady: {
+            console.log("Explanations received:", moveExplanations.length)
+            for (let i = 0; i < moveExplanations.length; i++) {
+                console.log("Move", moveExplanations[i].moveIndex, ":", moveExplanations[i].explanation)
             }
         }
     }
