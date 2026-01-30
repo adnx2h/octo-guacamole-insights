@@ -169,6 +169,10 @@ void BoardHandler::nextMove(){
     }
 }
 
+int BoardHandler::getCurrentMoveIndex(){
+    return m_moveIndex;
+}
+
 void BoardHandler::toUciMove(chess::Move move){
     chess::Square from = move.from();
     chess::Square to = move.to();

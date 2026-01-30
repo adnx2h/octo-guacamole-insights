@@ -156,7 +156,6 @@ Item {
                     Layout.fillWidth: true
                     Layout.fillHeight: true // Fill available height in the column
                     readOnly: false
-                    text: "Move analysis here..."
                     font.pixelSize: 18
                     wrapMode: Text.WordWrap
                     background: Rectangle {
@@ -188,6 +187,9 @@ Item {
                             
                             console.log("Previous move");
                             id_boardHandler.prevMove();
+
+                            //Update the explanation box
+                            id_TextArea_explanation.text = id_aiHandler.gameExplanations[id_boardHandler.getCurrentMoveIndex()]?.explanation || "No explanation available.";
                             
                             //for testing purposes only
                             // id_aiHandler.requestMoveExplanation("startpos", "", 0);
@@ -201,6 +203,9 @@ Item {
                         onClicked: {
                             console.log("Next move");
                             id_boardHandler.nextMove();
+
+                            //Update the explanation box
+                            id_TextArea_explanation.text = id_aiHandler.gameExplanations[id_boardHandler.getCurrentMoveIndex()]?.explanation || "No explanation available.";
                         }
                     }
                 }
@@ -233,7 +238,7 @@ Item {
         onGameExplanationReady: {
             console.log("Explanations received:", moveExplanations.length)
             for (let i = 0; i < moveExplanations.length; i++) {
-                console.log("Move", moveExplanations[i].moveIndex, ":", moveExplanations[i].explanation)
+                console.log("Move", moveExplanations[i].moveIndex, moveExplanations[i].explanation)
             }
         }
     }

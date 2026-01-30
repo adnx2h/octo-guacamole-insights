@@ -26,6 +26,7 @@ public:
     Q_INVOKABLE void getFEN();
     Q_INVOKABLE void prevMove();
     Q_INVOKABLE void nextMove();
+    Q_INVOKABLE int getCurrentMoveIndex();
 
     /**
      * @brief Getter for the piecePositions Q_PROPERTY.
