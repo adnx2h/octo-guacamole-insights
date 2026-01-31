@@ -10,6 +10,9 @@ Item {
     visible: false
     signal sgnBtnSettingsClicked()
 
+    // Property to track the current move index for highlighting
+    property int currentMoveIndex: 0
+
     // Outer ColumnLayout to hold the top bar, chess board, and bottom row
     ColumnLayout {
         id: mainColumnLayout
@@ -112,9 +115,12 @@ Item {
                                 }
 
                                 Text {
+                                    id: id_txtWhiteMove
                                     Layout.preferredWidth: parent.width * 0.35
                                     text: model.whiteMove
                                     verticalAlignment: Text.AlignVCenter
+                                    color: (id_AnalysisScreen.currentMoveIndex === index * 2) ? "blue" : "black"
+                                    font.bold: (id_AnalysisScreen.currentMoveIndex === index * 2)
                                     MouseArea {
                                         anchors.fill: parent
                                         onClicked: {
@@ -126,9 +132,12 @@ Item {
                                 }
 
                                 Text {
+                                    id: id_txtBlackMove
                                     Layout.preferredWidth: parent.width * 0.35
                                     text: model.blackMove
                                     verticalAlignment: Text.AlignVCenter
+                                    color: (id_AnalysisScreen.currentMoveIndex === index * 2 + 1) ? "blue" : "black"
+                                    font.bold: (id_AnalysisScreen.currentMoveIndex === index * 2 + 1)
                                     MouseArea {
                                         anchors.fill: parent
                                         onClicked: {
@@ -151,22 +160,24 @@ Item {
                 Layout.fillHeight: true
 
                 // i) Text Area
-                TextArea {
-                    id: id_TextArea_explanation
+                ScrollView {
                     Layout.fillWidth: true
                     Layout.fillHeight: true // Fill available height in the column
-                    readOnly: false
-                    font.pixelSize: 18
-                    wrapMode: Text.WordWrap
-                    background: Rectangle {
-                        color: "grey"
-                        border.width: 2
-                        radius: 5
-                    }
-                    ScrollBar.vertical: ScrollBar {
-                        policy: ScrollBar.AlwaysOn // Always show the scrollbar
-                        width: 12                  // Optional: make it wider
-                        anchors.right: parent.right // Ensure it's on the right edge
+
+                    ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+
+                    TextArea {
+                        id: id_TextArea_explanation
+                        width: parent.width
+                        height: implicitHeight
+                        readOnly: false
+                        font.pixelSize: 18
+                        wrapMode: Text.WordWrap
+                        background: Rectangle {
+                            color: "grey"
+                            border.width: 2
+                            radius: 5
+                        }
                     }
                 }
 
@@ -180,6 +191,7 @@ Item {
                     spacing: 5
                     Button {
                         id: id_btn_Previous
+                        enabled: false
                         text: "<"
                         Layout.fillWidth: true
                         Layout.fillHeight: true // Will fill the parent's preferredHeight
@@ -187,6 +199,7 @@ Item {
                             
                             console.log("Previous move");
                             id_boardHandler.prevMove();
+                            currentMoveIndex = id_boardHandler.getCurrentMoveIndex();
 
                             //Update the explanation box
                             id_TextArea_explanation.text = id_aiHandler.gameExplanations[id_boardHandler.getCurrentMoveIndex()]?.explanation || "No explanation available.";
@@ -197,12 +210,14 @@ Item {
                     }
                     Button {
                         id: id_btn_Next
+                        enabled: false
                         text: ">"
                         Layout.fillWidth: true
                         Layout.fillHeight: true // Will fill the parent's preferredHeight
                         onClicked: {
                             console.log("Next move");
                             id_boardHandler.nextMove();
+                            currentMoveIndex = id_boardHandler.getCurrentMoveIndex();
 
                             //Update the explanation box
                             id_TextArea_explanation.text = id_aiHandler.gameExplanations[id_boardHandler.getCurrentMoveIndex()]?.explanation || "No explanation available.";
@@ -215,7 +230,7 @@ Item {
     Connections {
         target: id_boardHandler
         onSgn_evalPositionsChanged: {
-            console.log("Evaluation is:  " + newEval )
+            // console.log("Evaluation is:  " + newEval )
             var whiteHeightRatio = (newEval + 100) / 200; // Normalize -100 to 100 to 0 to 1
             id_whiteEvaluationBar.whiteAdvantage =  whiteHeightRatio
         }
@@ -236,10 +251,13 @@ Item {
             }
         }
         onGameExplanationReady: {
-            console.log("Explanations received:", moveExplanations.length)
+            // console.log("Explanations received:", moveExplanations.length)
             for (let i = 0; i < moveExplanations.length; i++) {
                 console.log("Move", moveExplanations[i].moveIndex, moveExplanations[i].explanation)
             }
+            id_btn_Next.enabled = true
+            id_btn_Previous.enabled = true
+            currentMoveIndex = 0
         }
     }
 }
