@@ -234,6 +234,10 @@ Item {
             var whiteHeightRatio = (newEval + 100) / 200; // Normalize -100 to 100 to 0 to 1
             id_whiteEvaluationBar.whiteAdvantage =  whiteHeightRatio
         }
+        onLastMoveChanged: {
+            id_analysisChessBoard.highlightFrom = id_boardHandler.lastMoveFrom
+            id_analysisChessBoard.highlightTo = id_boardHandler.lastMoveTo
+        }
     }
     // Property to track AI loading status
     property bool explanationLoading: false

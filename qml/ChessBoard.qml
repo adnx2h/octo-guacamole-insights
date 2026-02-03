@@ -10,6 +10,8 @@ Item {
     //     color: "lightgray" // Background of the whole board area
     property real squareSize: chessBoardRoot.width / 8 // This will use the width set by the parent
     property real pieceScale: 0.95 // piece scale (95%)
+    property int highlightFrom: -1
+    property int highlightTo: -1
 
     //54 squares
     Repeater {
@@ -57,7 +59,15 @@ Item {
         Rectangle {
             width: parent.width /8
             height: width
-            color: BoardUtils.setSquareColor(index); // Pass the square index
+            color: {
+                if (index === chessBoardRoot.highlightFrom) {
+                    return "lightgray";
+                } else if (index === chessBoardRoot.highlightTo) {
+                    return "lightgray";
+                } else {
+                    return BoardUtils.setSquareColor(index);
+                }
+            }
             x: BoardUtils.setSquareX(index,squareSize);
             y: BoardUtils.setSquareY(index, squareSize);
             z: 0 //Ensure squares are underneath pieces

@@ -17,6 +17,8 @@ class BoardHandler : public QObject
     // Declare a Q_PROPERTY that QML can read.
     // It's a list of maps, where each map contains "index" (int) and "piece" (QString).
     Q_PROPERTY(QVariantList piecePositions READ piecePositions NOTIFY piecePositionsChanged)
+    Q_PROPERTY(int lastMoveFrom READ lastMoveFrom NOTIFY lastMoveChanged)
+    Q_PROPERTY(int lastMoveTo READ lastMoveTo NOTIFY lastMoveChanged)
 
 
 public:
@@ -33,6 +35,8 @@ public:
      * @return A QVariantList representing the current state of the board.
      */
     QVariantList piecePositions() const;
+    int lastMoveFrom() const { return m_lastMoveFrom; }
+    int lastMoveTo() const { return m_lastMoveTo; }
 
     /**
      * @brief Resets the chess board to its initial starting position.
@@ -45,6 +49,8 @@ private:
     QStringList uciMovesList;
     QList<int> m_movesEvaluations;
     int m_moveIndex;
+    int m_lastMoveFrom;
+    int m_lastMoveTo;
     void toUciMove(chess::Move);
     bool isValidPGN(const QString &pgn);
     BoardTypes::PgnData pgn_data;
@@ -55,6 +61,10 @@ private:
      * @return A QVariantList of QVariantMaps, each containing "index" and "piece" (e.g., "wR", "bP").
      */
     QVariantList generatePiecePositions() const;
+
+    int squareStringToIndex(const std::string& squareStr) const;
+
+    void setLastMove(const chess::Move& move);
 
     QString pieceToString(chess::Piece piece) const;
     
@@ -73,6 +83,7 @@ signals:
     void sgn_evalPositionsChanged(int newEval);
     void sgn_newUCIMove(QString uciMove);
     void sgn_newFen(QString fen);
+    void lastMoveChanged();
 };
 
 #endif // BOARDHANDLER_H

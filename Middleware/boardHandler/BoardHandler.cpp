@@ -3,7 +3,7 @@
 #include <QDebug>
 
 BoardHandler::BoardHandler(QObject *parent)
-    : QObject{parent}
+    : QObject{parent}, m_moveIndex(-1), m_lastMoveFrom(-1), m_lastMoveTo(-1)
 {
 }
 
@@ -139,6 +139,7 @@ void BoardHandler::getFEN() {
 void BoardHandler::prevMove(){
     if (m_moveIndex >= 0) {
         const chess::Move moveToUnmake = m_movesObject.moves.at(m_moveIndex);
+        setLastMove(moveToUnmake);
         m_board.unmakeMove(moveToUnmake);
         m_moveIndex--;
         emit piecePositionsChanged();
@@ -160,6 +161,7 @@ void BoardHandler::nextMove(){
         m_moveIndex++;
         const chess::Move moveToMake = m_movesObject.moves.at(m_moveIndex);
         m_board.makeMove(moveToMake);
+        setLastMove(moveToMake);
         emit piecePositionsChanged();
         emit sgn_evalPositionsChanged(m_movesEvaluations.at(m_moveIndex));
 
@@ -196,9 +198,12 @@ void BoardHandler::initializeBoard()
     m_board= chess::Board(chess::constants::STARTPOS,false); //initializes the board to the starting position
     tempBoard = chess::Board(chess::constants::STARTPOS,false);
     m_moveIndex = -1;
+    m_lastMoveFrom = -1;
+    m_lastMoveTo = -1;
     m_movesObject.moves.clear();
     m_movesEvaluations.clear();
     emit piecePositionsChanged(); // Notify QML that the data has changed
+    emit lastMoveChanged();
 }
 
 QString BoardHandler::pieceToString(chess::Piece piece) const
@@ -246,4 +251,27 @@ QVariantList BoardHandler::generatePiecePositions() const
         }
     }
     return positions;
+}
+
+int BoardHandler::squareStringToIndex(const std::string& squareStr) const
+{
+    if (squareStr.length() != 2) return -1;
+    char fileChar = squareStr[0];
+    char rankChar = squareStr[1];
+    int file = fileChar - 'a';
+    int rank = rankChar - '1';
+    if (file < 0 || file > 7 || rank < 0 || rank > 7) return -1;
+    int qmlIndex = (7 - rank) * 8 + file;
+    return qmlIndex;
+}
+
+void BoardHandler::setLastMove(const chess::Move& move)
+{
+    chess::Square fromSq = move.from();
+    chess::Square toSq = move.to();
+    std::string fromStr = static_cast<std::string>(fromSq);
+    std::string toStr = static_cast<std::string>(toSq);
+    m_lastMoveFrom = squareStringToIndex(fromStr);
+    m_lastMoveTo = squareStringToIndex(toStr);
+    emit lastMoveChanged();
 }
