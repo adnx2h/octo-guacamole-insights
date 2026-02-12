@@ -5,8 +5,7 @@ import PGN_movesModule 1.0
 
 Item {
     id: id_AnalysisScreen
-    width: id_appWindow.width
-    height: id_appWindow.height
+    anchors.fill: parent
     visible: false
     signal sgnBtnSettingsClicked()
 

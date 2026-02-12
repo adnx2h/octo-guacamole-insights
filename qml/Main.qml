@@ -8,14 +8,15 @@ import QtQuick.Layouts 1
 
 ApplicationWindow {
     id: id_appWindow
-    width: 450
-    // height: Screen.height
-    height: 700
+    // Use full available screen on Android, keep original fixed size on desktop (Windows)
+    width: Qt.platform.os === "android" ? Screen.availableWidth : 450
+    height: Qt.platform.os === "android" ? Screen.availableHeight : 700
     visible: true
     title: qsTr("Chess PGN Analyzer")
 
     Item {
         id: id_mainScreen
+        anchors.fill: parent
 
         InitialScreen {
             id: id_InitialScreen
