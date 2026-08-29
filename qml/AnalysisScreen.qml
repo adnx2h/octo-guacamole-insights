@@ -12,22 +12,27 @@ Item {
     // Property to track the current move index for highlighting
     property int currentMoveIndex: 0
 
-    // Outer ColumnLayout to hold the top bar, chess board, and bottom row
-    ColumnLayout {
-        id: mainColumnLayout
+    // Use explicit anchors instead of Layout-driven sizing to avoid recursive polish loops.
+    Item {
+        id: mainColumn
         anchors.fill: parent
+        anchors.margins: 8
 
-        // 1. Top Bar (RowLayout) - Height is now less
-        RowLayout {
+        Rectangle {
             id: id_rowLayout_top_bar
-            Layout.fillWidth: true
-            Layout.preferredHeight:  id_analysisChessBoard.height / 30 // Height of one chessboard square
+            anchors.top: parent.top
+            anchors.left: parent.left
+            anchors.right: parent.right
+            height: 40
+            color: "transparent"
 
             Button {
                 id: id_Btn_Settings
+                anchors.left: parent.left
+                anchors.verticalCenter: parent.verticalCenter
+                width: 40
+                height: parent.height - 8
                 text: "..."
-                width: id_analysisChessBoard.width / 9 // Use a fixed width
-                Layout.fillHeight: true
                 onClicked: {
                     console.log("Settings Button Clicked");
                     sgnBtnSettingsClicked()
@@ -35,52 +40,56 @@ Item {
             }
         }
 
-        // 2. RowLayout for the custom Vertical Progress Bar and ChessBoard
-        RowLayout {
-            Layout.fillWidth: true
-            Layout.fillHeight: true // Allows this RowLayout to take available vertical space
+        Row {
+            id: boardRow
+            anchors.top: id_rowLayout_top_bar.bottom
+            anchors.topMargin: 8
+            anchors.left: parent.left
+            anchors.right: parent.right
+            height: boardSize
+            spacing: 4
 
-            // Custom Vertical Progress Bar (using Rectangles to avoid 'orientation' property)
+            property real boardSize: Math.max(200, boardRow.width - id_whiteEvaluationBar.width - boardRow.spacing)
+
             Rectangle {
                 id: id_whiteEvaluationBar
-                Layout.preferredWidth: 10 // Fixed small width for the bar
-                Layout.preferredHeight: id_analysisChessBoard.width  // Same height as the chessboard
-                color: "#60A060" // Greenish color for the filled portion
+                width: 10
+                height: boardRow.boardSize
+                color: "#60A060"
                 border.width: 1
 
-                // Expose a 'value' property for easy control (0.0 to 1.0)
-                property real whiteAdvantage: 0.5 // Example value
+                property real whiteAdvantage: 0.5
 
-                // The filling part of the progress bar
                 Rectangle {
                     id: id_blackEvaluationBar
                     width: parent.width
-                    height: parent.height * id_whiteEvaluationBar.whiteAdvantage // Control fill height based on 'value'
-                    anchors.bottom: parent.bottom // The fill starts from the bottom
-                    color: "#E0E0E0" // Light grey background for the bar f0d9b5
+                    height: parent.height * id_whiteEvaluationBar.whiteAdvantage
+                    anchors.bottom: parent.bottom
+                    color: "#E0E0E0"
                     border.color: "#A0A0A0"
                 }
             }
 
-            // Chess Board (Item)
             ChessBoard {
                 id: id_analysisChessBoard
-                Layout.fillWidth: true
-                Layout.preferredHeight: width
+                width: boardRow.boardSize
+                height: width
             }
         }
 
-        // 3. Main bottom RowLayout containing the movements list and controls column
-        RowLayout {
+        Row {
             id: id_movements_comments_buttons_rowL
-            Layout.fillWidth: true
-            Layout.fillHeight: true // Fill the remaining vertical space
+            anchors.top: boardRow.bottom
+            anchors.topMargin: 8
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
+            spacing: 8
 
-            // a) Movements List (Rectangle containing ListView)
             Rectangle {
                 id: id_movementsContainer
-                Layout.preferredWidth: parent.width * 0.25
-                Layout.fillHeight: true
+                width: 180
+                height: parent.height
                 color: "red"
 
                 MovesListModel {
@@ -89,33 +98,33 @@ Item {
 
                 ListView {
                     id: id_listView_movements
-                    anchors.fill: parent // Use anchors to fill the parent Rectangle
+                    anchors.fill: parent
                     model: movesModel
                     visible: true
 
                     delegate: Item {
-                        width: ListView.view.width // Use ListView.view to reference the parent ListView
+                        width: ListView.view.width
                         height: 30
 
-                        Rectangle { // The background rectangle for each line
+                        Rectangle {
                             anchors.fill: parent
                             color: "white"
                             border.width: 1
                             border.color: "lightgray"
 
-                            RowLayout {
+                            Row {
                                 anchors.fill: parent
                                 spacing: 5
 
                                 Text {
-                                    Layout.preferredWidth: parent.width * 0.2
+                                    width: parent.width * 0.2
                                     text: model.moveNumber + "."
                                     verticalAlignment: Text.AlignVCenter
                                 }
 
                                 Text {
                                     id: id_txtWhiteMove
-                                    Layout.preferredWidth: parent.width * 0.35
+                                    width: parent.width * 0.35
                                     text: model.whiteMove
                                     verticalAlignment: Text.AlignVCenter
                                     color: (id_AnalysisScreen.currentMoveIndex === index * 2) ? "blue" : "black"
@@ -132,7 +141,7 @@ Item {
 
                                 Text {
                                     id: id_txtBlackMove
-                                    Layout.preferredWidth: parent.width * 0.35
+                                    width: parent.width * 0.35
                                     text: model.blackMove
                                     verticalAlignment: Text.AlignVCenter
                                     color: (id_AnalysisScreen.currentMoveIndex === index * 2 + 1) ? "blue" : "black"
@@ -152,16 +161,15 @@ Item {
                 }
             }
 
-            // b) Column containing the Text Area and Buttons Row
-            ColumnLayout {
+            Column {
                 id: id_comments_buttons_colL
-                Layout.fillWidth: true // Take the remaining width
-                Layout.fillHeight: true
+                width: parent.width - id_movementsContainer.width - parent.spacing
+                height: parent.height
+                spacing: 8
 
-                // i) Text Area
                 ScrollView {
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true // Fill available height in the column
+                    width: parent.width
+                    height: parent.height - 50
 
                     ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
 
@@ -180,45 +188,36 @@ Item {
                     }
                 }
 
-                // ii) Buttons Row - Same height as top bar
-                RowLayout {
+                Row {
                     id: id_buttonsRowL
-                    Layout.fillWidth: true
-                    Layout.fillHeight: false // Prevents it from expanding
-                    // Set preferredHeight to be the same as the top bar's preferredHeight
-                    Layout.preferredHeight:  id_analysisChessBoard.height / 8 // Height of one chessboard square
+                    width: parent.width
+                    height: 42
                     spacing: 5
+
                     Button {
                         id: id_btn_Previous
                         enabled: false
+                        width: (parent.width - parent.spacing) / 2
+                        height: parent.height
                         text: "<"
-                        Layout.fillWidth: true
-                        Layout.fillHeight: true // Will fill the parent's preferredHeight
                         onClicked: {
-                            
                             console.log("Previous move");
                             id_boardHandler.prevMove();
                             currentMoveIndex = id_boardHandler.getCurrentMoveIndex();
-
-                            //Update the explanation box
                             id_TextArea_explanation.text = id_aiHandler.gameExplanations[id_boardHandler.getCurrentMoveIndex()]?.explanation || "No explanation available.";
-                            
-                            //for testing purposes only
-                            // id_aiHandler.requestMoveExplanation("startpos", "", 0);
                         }
                     }
+
                     Button {
                         id: id_btn_Next
                         enabled: false
+                        width: (parent.width - parent.spacing) / 2
+                        height: parent.height
                         text: ">"
-                        Layout.fillWidth: true
-                        Layout.fillHeight: true // Will fill the parent's preferredHeight
                         onClicked: {
                             console.log("Next move");
                             id_boardHandler.nextMove();
                             currentMoveIndex = id_boardHandler.getCurrentMoveIndex();
-
-                            //Update the explanation box
                             id_TextArea_explanation.text = id_aiHandler.gameExplanations[id_boardHandler.getCurrentMoveIndex()]?.explanation || "No explanation available.";
                         }
                     }
@@ -228,12 +227,14 @@ Item {
     }
     Connections {
         target: id_boardHandler
-        onSgn_evalPositionsChanged: {
+
+        function onSgn_evalPositionsChanged(newEval) {
             // console.log("Evaluation is:  " + newEval )
             var whiteHeightRatio = (newEval + 100) / 200; // Normalize -100 to 100 to 0 to 1
-            id_whiteEvaluationBar.whiteAdvantage =  whiteHeightRatio
+            id_whiteEvaluationBar.whiteAdvantage = whiteHeightRatio
         }
-        onLastMoveChanged: {
+
+        function onLastMoveChanged() {
             id_analysisChessBoard.highlightFrom = id_boardHandler.lastMoveFrom
             id_analysisChessBoard.highlightTo = id_boardHandler.lastMoveTo
         }
@@ -243,17 +244,20 @@ Item {
     // Connections for AI explanation
     Connections {
         target: id_aiHandler
-        onMoveExplanationReady: {
+
+        function onMoveExplanationReady(explanation) {
             id_TextArea_explanation.text = explanation;
             loadingText.visible = false;
         }
-        onExplanationRequestStatus: {
+
+        function onExplanationRequestStatus(isLoading) {
             explanationLoading = isLoading;
             if (isLoading) {
                 id_TextArea_explanation.text = ""; // Clear previous explanation
             }
         }
-        onGameExplanationReady: {
+
+        function onGameExplanationReady(moveExplanations) {
             // console.log("Explanations received:", moveExplanations.length)
             for (let i = 0; i < moveExplanations.length; i++) {
                 console.log("Move", moveExplanations[i].moveIndex, moveExplanations[i].explanation)

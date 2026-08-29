@@ -1,4 +1,5 @@
 #include <QGuiApplication>
+#include <QQuickStyle>
 #include <QQmlApplicationEngine>
 #include <QQmlContext> // Needed for setContextProperty.
 #include "BoardHandler.h"
@@ -9,6 +10,7 @@
 
 int main(int argc, char *argv[])
 {
+    QQuickStyle::setStyle("Basic");
     QGuiApplication app(argc, argv);
 
     QQmlApplicationEngine engine;
