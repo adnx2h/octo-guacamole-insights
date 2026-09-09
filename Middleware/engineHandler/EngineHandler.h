@@ -11,6 +11,7 @@
 #include <QThread>
 
 #include <QWaitCondition>
+#include <QString>
 
 class EngineHandler : public QObject
 {
@@ -60,7 +61,7 @@ private:
     // Helper to convert centipawns/mate to a normalized bar value
     int normalizeEvaluation(int cp, int mate);
 
-    QString const STOCKFISH_PATH = "D:\\bin\\stockfish_x86-64.exe";
+    QString stockfishPath() const;
     //flag to indicate if engine is currently analyzing a position
     bool isAnalyzingPositionComplete;
     QString uciMoves;

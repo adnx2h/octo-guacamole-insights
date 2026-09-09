@@ -32,7 +32,32 @@ qt_add_qml_module(appChess
     SOURCES Middleware/externalLibraries/chess.hpp
 )
 
-target_include_directories(appChess PRIVATE Middleware/boardHandler Middleware/externalLibraries Middleware/engineHandler Middleware/aiHandler)
+if(ANDROID)
+    set(CHESS_INCLUDE_DIR "${CMAKE_CURRENT_LIST_DIR}/../chess-library/build-android/include")
+    set(STOCKFISH_BINARY "${CMAKE_CURRENT_LIST_DIR}/../Stockfish/stockfish-android-armv8-dotprod/stockfish/src/stockfish")
+    if(NOT ANDROID_ABI STREQUAL "arm64-v8a")
+        message(FATAL_ERROR "The Android Stockfish binary requires the arm64-v8a ABI")
+    endif()
+    if(NOT EXISTS "${STOCKFISH_BINARY}")
+        message(FATAL_ERROR "Android Stockfish binary not found: ${STOCKFISH_BINARY}")
+    endif()
+    set(STOCKFISH_DEPLOY_BINARY "${CMAKE_CURRENT_BINARY_DIR}/libstockfish.so")
+    configure_file("${STOCKFISH_BINARY}" "${STOCKFISH_DEPLOY_BINARY}" COPYONLY)
+    set_target_properties(appChess PROPERTIES
+        QT_ANDROID_EXTRA_LIBS "${STOCKFISH_DEPLOY_BINARY}"
+        QT_ANDROID_LEGACY_PACKAGING TRUE
+    )
+else()
+    set(CHESS_INCLUDE_DIR "${CMAKE_CURRENT_LIST_DIR}/Middleware/externalLibraries")
+endif()
+
+target_include_directories(appChess PRIVATE
+    ${CHESS_INCLUDE_DIR}
+    Middleware/boardHandler
+    Middleware/externalLibraries
+    Middleware/engineHandler
+    Middleware/aiHandler
+)
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an

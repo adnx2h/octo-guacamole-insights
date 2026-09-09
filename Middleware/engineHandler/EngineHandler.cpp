@@ -1,4 +1,8 @@
 #include "EngineHandler.h"
+#include <QFile>
+#ifdef Q_OS_ANDROID
+#include <QJniObject>
+#endif
 
 EngineHandler::EngineHandler(QObject *parent) : QObject(parent)
 {
@@ -36,11 +40,41 @@ EngineHandler::~EngineHandler()
 void EngineHandler::startEngine()
 {
     if (stockfishProcess->state() == QProcess::NotRunning) {
-        qDebug() << "Starting Stockfish engine from:" << STOCKFISH_PATH;
-        stockfishProcess->start(STOCKFISH_PATH);
+        const QString path = stockfishPath();
+        qDebug() << "Starting Stockfish engine from:" << path;
+        if (path.isEmpty()) {
+            emit engineError("Android Stockfish could not be prepared.");
+            return;
+        }
+        stockfishProcess->start(path);
     } else {
         qDebug() << "Stockfish already running or starting.";
     }
+}
+
+QString EngineHandler::stockfishPath() const
+{
+#ifdef Q_OS_ANDROID
+    const QJniObject context = QJniObject::callStaticObjectMethod(
+        "android/app/ActivityThread", "currentApplication",
+        "()Landroid/app/Application;");
+    if (!context.isValid()) {
+        qWarning() << "Unable to obtain the Android application context.";
+        return {};
+    }
+    const QJniObject applicationInfo = context.callObjectMethod(
+        "getApplicationInfo", "()Landroid/content/pm/ApplicationInfo;");
+    const QJniObject nativeLibraryDir = applicationInfo.getObjectField<jstring>(
+        "nativeLibraryDir");
+    const QString path = nativeLibraryDir.toString() + "/libstockfish.so";
+    if (!QFile::exists(path)) {
+        qWarning() << "Android Stockfish was not deployed at:" << path;
+        return {};
+    }
+    return path;
+#else
+    return QStringLiteral("D:\\bin\\stockfish_x86-64.exe");
+#endif
 }
 
 void EngineHandler::stopEngine()
@@ -198,7 +232,7 @@ void EngineHandler::processFinished(int exitCode, QProcess::ExitStatus exitStatu
 
 void EngineHandler::processErrorOccurred(QProcess::ProcessError error)
 {
-    qWarning() << "Stockfish process error:" << error;
+    qWarning() << "Stockfish process error:" << error << stockfishProcess->errorString();
     emit engineError("Process error: " + stockfishProcess->errorString());
 }
 
