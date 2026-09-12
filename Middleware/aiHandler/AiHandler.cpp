@@ -117,7 +117,11 @@ void AiHandler::requestGameExplanation(const QString& gameAnalysisJson)
 
 
     // --- 2. Send the Request ---
+#ifdef Q_OS_ANDROID
+    const QString apiKey = QStringLiteral("123456"); // Temporary Android test key
+#else
     const QString apiKey = qEnvironmentVariable("geminiApiKey");
+#endif
 
     // Note: Using the recommended gemini-2.5-flash model
     QNetworkRequest request(QUrl("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + apiKey));
@@ -259,6 +263,7 @@ void AiHandler::onGeminiGameApiReply(QNetworkReply* reply)
 
     // 4. Signal readiness and make the stored data available
     qDebug() << "Successfully stored" << m_gameExplanations.size() << "move explanations.";
+    //commented out to test locally
     emit gameExplanationReady(m_gameExplanations);
 }
 //Receive each new Stockfish Evaluation
@@ -274,7 +279,17 @@ void AiHandler::stockfishAnalysisComplete(){
         moveCount == m_stockfishEvaluationsList.size())
     {
         auto jsonAnalysisGame = createGameJsonQuery();
+
+        //comented out to test locally.
         requestGameExplanation(jsonAnalysisGame);
+        
+        //start of test locally
+        // Fill m_gameExplanations with dummy entries
+        //  for (int i = 0; i < 15; ++i) {
+        //      m_gameExplanations.append({i, QString("Bla Bla\nbla bla\nbla\nof move %1").arg(i + 1)});
+        //  }
+        //  emit gameExplanationReady(m_gameExplanations);
+        //end of test locally
     }
     else{
         qWarning() << "Error: Data lists are not synchronized or are empty. Cannot create JSON query.";

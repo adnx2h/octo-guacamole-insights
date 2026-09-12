@@ -88,7 +88,7 @@ Item {
 
             Rectangle {
                 id: id_movementsContainer
-                width: 180
+                width: 85
                 height: parent.height
                 color: "red"
 

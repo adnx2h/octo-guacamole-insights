@@ -13,6 +13,7 @@ qt_standard_project_setup(REQUIRES 6.8)
 qt_add_executable(appChess
     Main.cpp
     qml.qrc
+    Middleware/externalLibraries/OpenSslLinkAnchor.cpp
 )
 
 qt_add_qml_module(appChess
@@ -43,10 +44,26 @@ if(ANDROID)
     endif()
     set(STOCKFISH_DEPLOY_BINARY "${CMAKE_CURRENT_BINARY_DIR}/libstockfish.so")
     configure_file("${STOCKFISH_BINARY}" "${STOCKFISH_DEPLOY_BINARY}" COPYONLY)
+    set(OPENSSL_LIBRARY_DIR "${CMAKE_CURRENT_LIST_DIR}/Middleware/externalLibraries/openssl_arm64")
+    set(OPENSSL_CRYPTO_LIBRARY "${OPENSSL_LIBRARY_DIR}/libcrypto.so")
+    set(OPENSSL_SSL_LIBRARY "${OPENSSL_LIBRARY_DIR}/libssl.so")
+    if(NOT EXISTS "${OPENSSL_CRYPTO_LIBRARY}" OR NOT EXISTS "${OPENSSL_SSL_LIBRARY}")
+        message(FATAL_ERROR "Android ARM64 OpenSSL libraries were not found in ${OPENSSL_LIBRARY_DIR}")
+    endif()
+    set(ANDROID_PACKAGE_DIR "${CMAKE_CURRENT_BINARY_DIR}/android-package")
+    set(ANDROID_PACKAGE_LIB_DIR "${ANDROID_PACKAGE_DIR}/libs/arm64-v8a")
+    file(MAKE_DIRECTORY "${ANDROID_PACKAGE_LIB_DIR}")
+    set(OPENSSL_QT_CRYPTO_LIBRARY "${CMAKE_CURRENT_BINARY_DIR}/libcrypto_qt.so")
+    set(OPENSSL_QT_SSL_LIBRARY "${CMAKE_CURRENT_BINARY_DIR}/libssl_qt.so")
+    file(COPY "${OPENSSL_CRYPTO_LIBRARY}" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
+    file(COPY "${OPENSSL_SSL_LIBRARY}" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
+    file(RENAME "${CMAKE_CURRENT_BINARY_DIR}/libcrypto.so" "${OPENSSL_QT_CRYPTO_LIBRARY}")
+    file(RENAME "${CMAKE_CURRENT_BINARY_DIR}/libssl.so" "${OPENSSL_QT_SSL_LIBRARY}")
     set_target_properties(appChess PROPERTIES
-        QT_ANDROID_EXTRA_LIBS "${STOCKFISH_DEPLOY_BINARY}"
+        QT_ANDROID_EXTRA_LIBS "${STOCKFISH_DEPLOY_BINARY};${OPENSSL_CRYPTO_LIBRARY};${OPENSSL_SSL_LIBRARY};${OPENSSL_QT_CRYPTO_LIBRARY};${OPENSSL_QT_SSL_LIBRARY}"
         QT_ANDROID_LEGACY_PACKAGING TRUE
     )
+    set(OPENSSL_LINK_LIBRARIES "${OPENSSL_SSL_LIBRARY};${OPENSSL_CRYPTO_LIBRARY}")
 else()
     set(CHESS_INCLUDE_DIR "${CMAKE_CURRENT_LIST_DIR}/Middleware/externalLibraries")
 endif()
@@ -73,6 +90,15 @@ set_target_properties(appChess PROPERTIES
 target_link_libraries(appChess
     PRIVATE Qt6::Quick Qt6::QuickControls2
 )
+
+if(ANDROID)
+    target_link_options(appChess PRIVATE
+        "LINKER:--no-as-needed"
+        "LINKER:-u,OPENSSL_init_ssl@OPENSSL_4.0.0"
+        "LINKER:-u,OPENSSL_init_crypto@OPENSSL_4.0.0"
+    )
+    target_link_libraries(appChess PRIVATE ${OPENSSL_LINK_LIBRARIES})
+endif()
 
 include(GNUInstallDirs)
 install(TARGETS appChess

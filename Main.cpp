@@ -10,6 +10,9 @@
 
 int main(int argc, char *argv[])
 {
+#ifdef Q_OS_ANDROID
+    qputenv("ANDROID_OPENSSL_SUFFIX", "_qt");
+#endif
     QQuickStyle::setStyle("Basic");
     QGuiApplication app(argc, argv);
 
