@@ -90,75 +90,115 @@ Item {
                 id: id_movementsContainer
                 width: 85
                 height: parent.height
-                color: "red"
+                // color: "red"
 
                 MovesListModel {
                     id: pgn_movesModel
                 }
 
                 ListView {
-                    id: id_listView_movements
-                    anchors.fill: parent
-                    model: movesModel
-                    visible: true
+    id: id_listView_movements
+    anchors.fill: parent
+    model: movesModel
+    visible: true
+    clip: true
+    spacing: 2
 
-                    delegate: Item {
-                        width: ListView.view.width
-                        height: 30
 
-                        Rectangle {
-                            anchors.fill: parent
-                            color: "white"
-                            border.width: 1
-                            border.color: "lightgray"
 
-                            Row {
-                                anchors.fill: parent
-                                spacing: 5
+    delegate: Item {
+        width: ListView.view.width
+        height: 36
 
-                                Text {
-                                    width: parent.width * 0.2
-                                    text: model.moveNumber + "."
-                                    verticalAlignment: Text.AlignVCenter
-                                }
+        // Alternating row background colors for better scannability
+        Rectangle {
+            anchors.fill: parent
+            anchors.margins: 2
+            radius: 4
+            color: (index % 2 === 0) ? "#ffffff" : "#f1f3f5"
 
-                                Text {
-                                    id: id_txtWhiteMove
-                                    width: parent.width * 0.35
-                                    text: model.whiteMove
-                                    verticalAlignment: Text.AlignVCenter
-                                    color: (id_AnalysisScreen.currentMoveIndex === index * 2) ? "blue" : "black"
-                                    font.bold: (id_AnalysisScreen.currentMoveIndex === index * 2)
-                                    MouseArea {
-                                        anchors.fill: parent
-                                        onClicked: {
-                                            if (model.moveItemObject) {
-                                                console.log(model.moveItemObject.moveNumber, " White move: ", model.moveItemObject.whiteMove)
-                                            }
-                                        }
-                                    }
-                                }
+            Row {
+                anchors.fill: parent
+                anchors.leftMargin: 8
+                anchors.rightMargin: 8
+                spacing: 4
 
-                                Text {
-                                    id: id_txtBlackMove
-                                    width: parent.width * 0.35
-                                    text: model.blackMove
-                                    verticalAlignment: Text.AlignVCenter
-                                    color: (id_AnalysisScreen.currentMoveIndex === index * 2 + 1) ? "blue" : "black"
-                                    font.bold: (id_AnalysisScreen.currentMoveIndex === index * 2 + 1)
-                                    MouseArea {
-                                        anchors.fill: parent
-                                        onClicked: {
-                                            if (model.moveItemObject) {
-                                                console.log(model.moveItemObject.moveNumber, " Black moves: ", model.moveItemObject.blackMove)
-                                            }
-                                        }
-                                    }
-                                }
+                // Move Number Column
+                Text {
+                    width: parent.width * 0.18
+                    height: parent.height
+                    text: model.moveNumber + "."
+                    verticalAlignment: Text.AlignVCenter
+                    color: "#757575"
+                    font.pixelSize: 13
+                    font.bold: true
+                }
+
+                // White Move Pill
+                Rectangle {
+                    width: parent.width * 0.39
+                    height: parent.height - 4
+                    anchors.verticalCenter: parent.verticalCenter
+                    radius: 4
+                    color: (id_AnalysisScreen.currentMoveIndex === index * 2) ? "#1976D2" : "transparent"
+
+                    Text {
+                        id: id_txtWhiteMove
+                        anchors.fill: parent
+                        anchors.leftMargin: 6
+                        text: model.whiteMove || ""
+                        verticalAlignment: Text.AlignVCenter
+                        color: (id_AnalysisScreen.currentMoveIndex === index * 2) ? "#ffffff" : "#212121"
+                        font.pixelSize: 14
+                        font.bold: (id_AnalysisScreen.currentMoveIndex === index * 2)
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            if (model.moveItemObject) {
+                                console.log(model.moveItemObject.moveNumber, " White move: ", model.moveItemObject.whiteMove)
                             }
                         }
                     }
                 }
+
+                // Black Move Pill
+                Rectangle {
+                    width: parent.width * 0.39
+                    height: parent.height - 4
+                    anchors.verticalCenter: parent.verticalCenter
+                    radius: 4
+                    color: (id_AnalysisScreen.currentMoveIndex === index * 2 + 1) ? "#1976D2" : "transparent"
+
+                    Text {
+                        id: id_txtBlackMove
+                        anchors.fill: parent
+                        anchors.leftMargin: 6
+                        text: model.blackMove || ""
+                        verticalAlignment: Text.AlignVCenter
+                        color: (id_AnalysisScreen.currentMoveIndex === index * 2 + 1) ? "#ffffff" : "#212121"
+                        font.pixelSize: 14
+                        font.bold: (id_AnalysisScreen.currentMoveIndex === index * 2 + 1)
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            if (model.moveItemObject) {
+                                console.log(model.moveItemObject.moveNumber, " Black moves: ", model.moveItemObject.blackMove)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
             }
 
             Column {
@@ -194,32 +234,64 @@ Item {
                     height: 42
                     spacing: 5
 
-                    Button {
-                        id: id_btn_Previous
-                        enabled: false
-                        width: (parent.width - parent.spacing) / 2
-                        height: parent.height
-                        text: "<"
-                        onClicked: {
-                            console.log("Previous move");
-                            id_boardHandler.prevMove();
-                            currentMoveIndex = id_boardHandler.getCurrentMoveIndex();
-                            id_TextArea_explanation.text = id_aiHandler.gameExplanations[id_boardHandler.getCurrentMoveIndex()]?.explanation || "No explanation available.";
-                        }
-                    }
+                    // Previous Move Button
+        Button {
+            id: id_btn_Previous
+            enabled: false
+            width: (parent.width - parent.spacing) / 2
+            height: parent.height
+            text: "◄ Previous"
 
-                    Button {
-                        id: id_btn_Next
-                        enabled: false
-                        width: (parent.width - parent.spacing) / 2
-                        height: parent.height
-                        text: ">"
-                        onClicked: {
-                            console.log("Next move");
-                            id_boardHandler.nextMove();
-                            currentMoveIndex = id_boardHandler.getCurrentMoveIndex();
-                            id_TextArea_explanation.text = id_aiHandler.gameExplanations[id_boardHandler.getCurrentMoveIndex()]?.explanation || "No explanation available.";
-                        }
+            contentItem: Text {
+                text: id_btn_Previous.text
+                font.bold: true
+                font.pixelSize: 14
+                color: id_btn_Previous.enabled ? "white" : "#9e9e9e"
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
+            }
+
+            background: Rectangle {
+                color: !id_btn_Previous.enabled ? "#e0e0e0" : (id_btn_Previous.down ? "#1565C0" : "#1976D2")
+                radius: 6
+            }
+
+            onClicked: {
+                console.log("Previous move");
+                id_boardHandler.prevMove();
+                currentMoveIndex = id_boardHandler.getCurrentMoveIndex();
+                id_TextArea_explanation.text = id_aiHandler.gameExplanations[id_boardHandler.getCurrentMoveIndex()]?.explanation || "No explanation available.";
+            }
+        }
+
+        // Next Move Button
+        Button {
+            id: id_btn_Next
+            enabled: false
+            width: (parent.width - parent.spacing) / 2
+            height: parent.height
+            text: "Next ►"
+
+            contentItem: Text {
+                text: id_btn_Next.text
+                font.bold: true
+                font.pixelSize: 14
+                color: id_btn_Next.enabled ? "white" : "#9e9e9e"
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
+            }
+
+            background: Rectangle {
+                color: !id_btn_Next.enabled ? "#e0e0e0" : (id_btn_Next.down ? "#1565C0" : "#1976D2")
+                radius: 6
+            }
+
+            onClicked: {
+                console.log("Next move");
+                id_boardHandler.nextMove();
+                currentMoveIndex = id_boardHandler.getCurrentMoveIndex();
+                id_TextArea_explanation.text = id_aiHandler.gameExplanations[id_boardHandler.getCurrentMoveIndex()]?.explanation || "No explanation available.";
+            }
                     }
                 }
             }
