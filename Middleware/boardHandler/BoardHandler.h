@@ -30,6 +30,8 @@ public:
     Q_INVOKABLE void nextMove();
     Q_INVOKABLE int getCurrentMoveIndex();
 
+    QString cleanPgnForParsing(const QString &rawPgn);
+
     /**
      * @brief Getter for the piecePositions Q_PROPERTY.
      * @return A QVariantList representing the current state of the board.

@@ -65,6 +65,7 @@ Item {
                         text: qsTr("Fetch Games")
                         onClicked: {
                             // TODO: Trigger your C++ or JS network request here to populate listModelGames
+                            id_chessComHandler.fetchRecentGames(tfUsername.text)
                             console.log("Fetching recent games for:", tfUsername.text)
                         }
                     }
@@ -263,5 +264,55 @@ Item {
                 }
             }
         }
+    }
+    Connections {
+        target: id_chessComHandler
+
+        onSgn_gamesFetchedSuccess: function(gamesList) {
+            listModelGames.clear()
+
+            for (var i = 0; i < gamesList.length; i++) {
+                var g = gamesList[i]
+
+                // Determine result & color based on active user
+                var isUserWhite = (g.whiteUser.toLowerCase() === tfUsername.text.toLowerCase())
+                var opponent = isUserWhite ? g.blackUser : g.whiteUser
+                var opponentRating = isUserWhite ? g.blackRating : g.whiteRating
+                var result = isUserWhite ? g.whiteResult : g.blackResult
+
+                var resInfo = getResultDetails(result);
+
+                listModelGames.append({
+                    "opponent": opponent,
+                    "opponentRating": opponentRating.toString(),
+                    "result": resInfo.text,
+                    "resultColor": resInfo.color,
+                    "userColor": isUserWhite ? "White" : "Black",
+                    "date": g.date,
+                    "timeControl": g.timeControl.toUpperCase(),
+                    "ending": "",
+                    "pgnData": g.pgn
+                })
+            }
+        }
+
+        onSgn_gamesFetchFailed: function(errorMsg) {
+            console.warn("Chess.com Fetch Error:", errorMsg)
+        }
+    }
+    // Helper function to derive display label and color from raw API result
+    function getResultDetails(rawResult) {
+        if (rawResult === "win") {
+                return { text: "WIN", color: "#2e7d32" };
+            }
+
+            // Check for standard draw conditions
+            var drawResults = ["repetition", "insufficient", "stalemate", "agreed", "50move", "timevsinsufficient"];
+            if (drawResults.indexOf(rawResult) !== -1) {
+                return { text: "DRAW", color: "#757575" };
+            }
+
+            // Default remaining statuses (checkmated, resigned, timeout, abandoned) to LOSS
+            return { text: "LOSS", color: "#c62828" };
     }
 }

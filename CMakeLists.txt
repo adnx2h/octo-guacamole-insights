@@ -31,6 +31,7 @@ qt_add_qml_module(appChess
     SOURCES Middleware/engineHandler/EngineHandler.h Middleware/engineHandler/EngineHandler.cpp
     SOURCES Middleware/aiHandler/AiHandler.h Middleware/aiHandler/AiHandler.cpp
     SOURCES Middleware/externalLibraries/chess.hpp
+    SOURCES Middleware/chessComHandler/ChessComHandler.h Middleware/chessComHandler/ChessComHandler.cpp
 )
 
 if(ANDROID)
@@ -74,6 +75,7 @@ target_include_directories(appChess PRIVATE
     Middleware/externalLibraries
     Middleware/engineHandler
     Middleware/aiHandler
+    Middleware/chessComHandler
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.

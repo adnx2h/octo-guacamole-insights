@@ -7,6 +7,7 @@
 #include "BoardTypes.h"
 #include "EngineHandler.h"
 #include "AiHandler.h"
+#include "ChessComHandler.h"
 
 int main(int argc, char *argv[])
 {
@@ -26,12 +27,14 @@ int main(int argc, char *argv[])
     MovesListModel *movesListModel = new MovesListModel(&app); // <-- Create an instance of the model!
     EngineHandler *engineHandler = new EngineHandler(&app);
     AiHandler *aiHandler = new AiHandler(&app);
+    ChessComHandler *chessComHandler = new ChessComHandler(&app);
 
     // Register the C++ object with QML
     context->setContextProperty("id_boardHandler", boardHandler);
     context->setContextProperty("movesModel", movesListModel);
     context->setContextProperty("id_engineHandler", engineHandler);
     context->setContextProperty("id_aiHandler", aiHandler);
+    context->setContextProperty("id_chessComHandler", chessComHandler);
 
     // 2. Connect the signal from BoardHandler to the slot in MovesListModel
     // When BoardHandler emits rawMovesListReady, MovesListModel::processMoves will be called.

@@ -43,9 +43,46 @@ bool BoardHandler::isValidPGN(const QString &pgn) {
     return valid;
 }
 
+QString BoardHandler::cleanPgnForParsing(const QString &rawPgn) {
+    //Clean from chess.com format
+    // 1. Separate Headers from Moves (split at the first double newline)
+    int moveStartIdx = rawPgn.indexOf("\n\n");
+    if (moveStartIdx == -1) {
+        moveStartIdx = rawPgn.indexOf("\r\n\r\n");
+    }
+
+    if (moveStartIdx == -1) {
+        // Fallback if no double newline exists: clean whole text without multi-line swallow
+        QString moves = rawPgn;
+        moves.remove(QRegularExpression(R"(\{[\s\S]*?\})"));
+        moves.remove(QRegularExpression(R"(\d+\.{2,}\s*)"));
+        return moves.simplified();
+    }
+
+    QString headers = rawPgn.left(moveStartIdx).trimmed();
+    QString moves = rawPgn.mid(moveStartIdx).trimmed();
+
+    // 2. Remove comments like {[%clk 0:15:09.9]} safely from MOVES ONLY
+    static const QRegularExpression commentRegex(R"(\{[\s\S]*?\})");
+    moves.remove(commentRegex);
+
+    // 3. Remove black move continuation dots like "1... " or "1..."
+    static const QRegularExpression blackMoveNumRegex(R"(\d+\.{2,}\s*)");
+    moves.remove(blackMoveNumRegex);
+
+    // 4. Clean extra spaces/newlines inside the moves section only
+    moves = moves.simplified();
+
+    // Rejoin headers and cleaned moves
+    return headers + "\n\n" + moves;
+}
+
 // Function to parse a PGN chess game
 void BoardHandler::parsePgn(const QString& pgnString) {
-    QStringList lines = pgnString.split('\n');
+
+    QString cleanedString = cleanPgnForParsing(pgnString);
+
+    QStringList lines = cleanedString.split('\n');
     QString moveText;
     QString result; // To store the game result
     QMap<QString, QString> tags;
@@ -56,7 +93,7 @@ void BoardHandler::parsePgn(const QString& pgnString) {
 
     emit sgn_startEngine();
 
-    if(isValidPGN(pgnString)){
+    if(isValidPGN(cleanedString)){
         qDebug() << "PGN Valid";
         QRegularExpression moveOnlyRegex("([^\\s.]+)(?=\\s+|$)");
         QRegularExpression tagRegex("\\[(\\w+)\\s+\"([^\"]*)\"\\]");
