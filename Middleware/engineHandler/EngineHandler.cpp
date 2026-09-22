@@ -104,9 +104,16 @@ void EngineHandler::sendCommand(const QString& command)
     }
 }
 
-void EngineHandler::analyzePosition(const QString& fen, const QString& moves)
+void EngineHandler::analyzePosition(const QString &fen, const QString &moves)
 {
-    if (stockfishProcess->state() != QProcess::Running) {
+    // Reset position state
+    foundCp = false;
+    foundMate = false;
+    currentCp = 0;
+    currentMate = 0;
+
+    if (stockfishProcess->state() != QProcess::Running)
+    {
         qWarning() << "Cannot analyze: Stockfish not running.";
         emit engineError("Engine not running for analysis.");
         return;
@@ -142,10 +149,11 @@ void EngineHandler::uciMovesReceived(QStringList uciList)
 }
 
 void EngineHandler::processNextQueuedAnalysis(){
-    if(isEngineReady && !m_uciCumulativeMoves.isEmpty() && !m_isStockfishBusy){
-        QString nextMove = m_uciCumulativeMoves.dequeue();
-        m_isStockfishBusy=true;
-        analyzePosition("startpos", nextMove);
+    if(isEngineReady && !m_uciCumulativeMoves.isEmpty() && !m_isStockfishBusy) {
+        // Store current move string so readStandardOutput can safely calculate side to move
+        m_currentAnalyzingMove = m_uciCumulativeMoves.dequeue(); 
+        m_isStockfishBusy = true;
+        analyzePosition("startpos", m_currentAnalyzingMove);
     }
     else if(m_uciCumulativeMoves.isEmpty()){
         qDebug()<<"Stockfish analisis complete";
@@ -170,35 +178,64 @@ void EngineHandler::readStandardOutput()
         emit engineOutputReady(line); // Emit raw line for general logging
 
         // Parse for evaluation (cp or mate)
-        if (line.startsWith("info")) {
+        if (line.startsWith("info") && line.contains(" score ")) {
+            
+            bool isWhiteToMove = true;
+            if (!m_currentAnalyzingMove.trimmed().isEmpty()) {
+                int plyCount = m_currentAnalyzingMove.trimmed().split(' ', Qt::SkipEmptyParts).size();
+                isWhiteToMove = (plyCount % 2 == 0); 
+            }
+
             QRegularExpressionMatch cpMatch = cpRegex.match(line);
             if (cpMatch.hasMatch()) {
-                currentCp = cpMatch.captured(1).toInt();
+                int rawCp = cpMatch.captured(1).toInt();
+                currentCp = isWhiteToMove ? rawCp : -rawCp;
                 foundCp = true;
+                foundMate = false;
+                currentMate = 0;
             }
 
             QRegularExpressionMatch mateMatch = mateRegex.match(line);
             if (mateMatch.hasMatch()) {
-                currentMate = mateMatch.captured(1).toInt();
+                int rawMate = mateMatch.captured(1).toInt();
+                currentMate = isWhiteToMove ? rawMate : -rawMate;
                 foundMate = true;
+                foundCp = false;
+                currentCp = 0;
             }
 
-            if (foundCp || foundMate) {
-            }
         } else if (line.contains("uciok")) {
             sendCommand("isready");
         } else if (line.contains("readyok")) {
             isEngineReady = true;
             emit sgn_engineReady();
         } else if (line.startsWith("bestmove")) {
-            // qDebug() << "Best move from engine:" << line;
-            if(isEngineReady){
+            if (isEngineReady) {
+
+                // If Stockfish returns "bestmove (none)", the position is terminal (Checkmate or Stalemate).
+                // If it was checkmate, force currentMate based on the last player who moved.
+                if (line.contains("(none)") || (!foundMate && currentCp == 0)) {
+                    int plyCount = m_currentAnalyzingMove.trimmed().split(' ', Qt::SkipEmptyParts).size();
+
+                    // If plyCount is odd, White made the last move and delivered checkmate (+1 -> 100)
+                    // If plyCount is even, Black made the last move and delivered checkmate (-1 -> -100)
+                    currentMate = (plyCount % 2 != 0) ? 1 : -1;
+                    foundMate = true;
+                    foundCp = false;
+                }
 
                 if (foundCp || foundMate) {
                     normalizedEval = normalizeEvaluation(currentCp, currentMate);
-                    qDebug()<<counter<< "cp: "<<currentCp <<" normal: "<< normalizedEval;
+                    qDebug()<<counter<< "cp:"<<currentCp << "mate:" << currentMate << "normal:" << normalizedEval;
                     counter++;
-                    emit sgn_newEvaluation(normalizedEval); //sends the new evaluation to boardhandler
+
+                    emit sgn_newEvaluation(normalizedEval);
+
+                    foundCp = false;
+                    foundMate = false;
+                    currentCp = 0;
+                    currentMate = 0;
+
                     m_isStockfishBusy = false;
                     processNextQueuedAnalysis();
                 }
@@ -236,41 +273,18 @@ void EngineHandler::processErrorOccurred(QProcess::ProcessError error)
     emit engineError("Process error: " + stockfishProcess->errorString());
 }
 
-// Helper function to normalize evaluation for the bar
-// This is a simplified mapping. Real chess engines can have very high CPs.
-// Mate in N is a special case.
-int EngineHandler::normalizeEvaluation(int cp, int mate) {
-    // Checkmate always results in a full bar
+int EngineHandler::normalizeEvaluation(int cp, int mate)
+{
+    // Checkmate always results in a full bar (+100 or -100)
     if (mate != 0) {
         return (mate > 0) ? 100 : -100;
     }
 
-    // A good, standard way to handle centipawns is to use a non-linear scale.
-    // The evaluation is most sensitive near 0, and less sensitive as the
-    // advantage becomes larger. A simple logarithmic-like scale works well.
-    // Values are in centipawns (100 cp = 1 pawn).
+    // winningFraction goes from 0.0 (Black winning) to 1.0 (White winning)
+    double winningFraction = 1.0 / (1.0 + std::pow(10.0, -static_cast<double>(cp) / 400.0));
 
-    // You can define a maximum cp value for normalization, but
-    // a non-linear approach makes it so you don't need a hard clamp.
-    const int maxCpForNormalization = 800; // A strong winning position
+    // Scale to range [-100, 100]
+    int normalizedValue = static_cast<int>((winningFraction - 0.5) * 200.0);
 
-    int sign = (cp >= 0) ? 1 : -1;
-    int absCp = abs(cp);
-
-    // This is a simplified, non-linear mapping. It is not exactly what
-    // Chess.com uses but provides a similar feel.
-    // It's a logarithmic-like curve that flattens out.
-    // It emphasizes small advantages and reduces the impact of huge ones.
-
-    int normalizedValue;
-    if (absCp < 100) { // Small advantage (up to 1 pawn)
-        normalizedValue = (absCp * 20) / 100; // Map 100 cp to 20%
-    } else if (absCp < 400) { // Clear advantage (1 to 4 pawns)
-        normalizedValue = 20 + ((absCp - 100) * 30) / 300; // Map 400 cp to 50%
-    } else { // Decisive advantage (4+ pawns)
-        normalizedValue = 50 + ((absCp - 400) * 50) / maxCpForNormalization; // Map 1200 cp to 100%
-        normalizedValue = qBound(0, normalizedValue, 100);
-    }
-
-    return sign * normalizedValue;
+    return qBound(-100, normalizedValue, 100);
 }

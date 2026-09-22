@@ -73,5 +73,6 @@ private:
     bool foundMate = false;
     QQueue<QString> m_uciCumulativeMoves;
     bool m_isStockfishBusy;
+    QString m_currentAnalyzingMove;
 };
 #endif
