@@ -188,6 +188,7 @@ void BoardHandler::prevMove(){
             emit sgn_evalPositionsChanged(0);
             qDebug() <<"Eval: "<<0;
         }
+        emit sgn_isLastMoveForward(false); // <--- BACKWARD
     } else {
         qDebug() << "Already at the beginning of the game (initial board state).";
     }
@@ -201,6 +202,7 @@ void BoardHandler::nextMove(){
         setLastMove(moveToMake);
         emit piecePositionsChanged();
         emit sgn_evalPositionsChanged(m_movesEvaluations.at(m_moveIndex));
+        emit sgn_isLastMoveForward(true); // <--- FORWARD
 
         qDebug() << "Next Move: Index:" << m_moveIndex << "Evaluation:" << m_movesEvaluations.at(m_moveIndex);
     } else {

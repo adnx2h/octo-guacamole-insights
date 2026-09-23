@@ -60,6 +60,14 @@ Item {
 
                 property real whiteAdvantage: 0.5
 
+                // Automatically animate whiteAdvantage whenever it changes
+                Behavior on whiteAdvantage {
+                    NumberAnimation {
+                        duration: 500            // Duration in milliseconds
+                        easing.type: Easing.OutCubic // Smooth deceleration
+                    }
+                }
+
                 Rectangle {
                     id: id_blackEvaluationBar
                     width: parent.width
@@ -125,7 +133,7 @@ Item {
 
                 // Move Number Column
                 Text {
-                    width: parent.width * 0.18
+                    width: parent.width * 0.10
                     height: parent.height
                     text: model.moveNumber + "."
                     verticalAlignment: Text.AlignVCenter
@@ -136,7 +144,7 @@ Item {
 
                 // White Move Pill
                 Rectangle {
-                    width: parent.width * 0.39
+                    width: parent.width * 0.42
                     height: parent.height - 4
                     anchors.verticalCenter: parent.verticalCenter
                     radius: 4
@@ -167,7 +175,7 @@ Item {
 
                 // Black Move Pill
                 Rectangle {
-                    width: parent.width * 0.39
+                    width: parent.width * 0.42
                     height: parent.height - 4
                     anchors.verticalCenter: parent.verticalCenter
                     radius: 4

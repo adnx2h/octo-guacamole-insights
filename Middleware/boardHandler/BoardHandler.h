@@ -86,6 +86,7 @@ signals:
     void sgn_newUCIMove(QString uciMove);
     void sgn_newFen(QString fen);
     void lastMoveChanged();
+    void sgn_isLastMoveForward(bool);
 };
 
 #endif // BOARDHANDLER_H

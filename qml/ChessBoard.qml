@@ -1,88 +1,151 @@
-import QtQuick 2.0
+import QtQuick 2.15
 import "board_utils.js" as BoardUtils
 
 Item {
     id: chessBoardRoot
-    // width: parent.width
-    // height: width
-    // anchors.left: parent.left
-    // anchors.top: id_rowLayout_top_bar.bottom
-    //     color: "lightgray" // Background of the whole board area
     property real squareSize: chessBoardRoot.width / 8 // This will use the width set by the parent
     property real pieceScale: 0.95 // piece scale (95%)
     property int highlightFrom: -1
     property int highlightTo: -1
 
-    //54 squares
+    // Helper to find piece type for the animated overlay
+    function getPieceTypeAt(index) {
+        var list = id_boardHandler.piecePositions;
+        for (var i = 0; i < list.length; i++) {
+            if (list[i].index === index) {
+                return list[i].piece;
+            }
+        }
+        return "";
+    }
+
+    // 1. Grid of 64 Board Squares
     Repeater {
+        id: squareRepeater
         model: 64
         delegate: squareDelegate
     }
 
-    //pieces initial position
+    // 2. Stationary Board Pieces
     Repeater {
         model: id_boardHandler.piecePositions
         delegate: pieceDelegate
     }
 
     // --- Delegates ---
+
     Component {
         id: pieceDelegate
-        Image {
-            width: squareSize * chessBoardRoot.pieceScale
-            height: width
-            source:  "qrc:/images/" + modelData.piece + ".png" // Use the piece name to load the image
+        Item {
+            id: pieceContainer
+            x: BoardUtils.setSquareX(modelData.index, squareSize)
+            y: BoardUtils.setSquareY(modelData.index, squareSize)
+            width: squareSize
+            height: squareSize
+            z: 1
 
-            // Calculate the offset dynamically based on pieceScale
-            // (1 - pieceScale) gives the remaining space, divide by 2 for centering
-            x: BoardUtils.setSquareX(modelData.index, squareSize) + (squareSize * (1 - chessBoardRoot.pieceScale) / 2)
-            y: BoardUtils.setSquareY(modelData.index, squareSize) + (squareSize * (1 - chessBoardRoot.pieceScale) / 2)
-            z:1 //pieces are on top
-            visible: true
-            Component.onCompleted: {
-                // console.log("Piece created:", modelData.piece,
-                //             "at index:", modelData.index,
-                //             "Dimensions:", width + "x" + height,
-                //             "Position: (x:" + x + ", y:" + y + ")");
-            }
-            MouseArea {
-                anchors.fill: parent
-                onClicked: {
-                    console.log("Clicked piece:", modelData.piece, "at index:", modelData.index);
-                }
+            // Hide the piece at the target landing square until the slide finishes
+            visible: !(animatedPiece.visible && modelData.index === animatedPiece.activeTargetSquare)
+
+            Image {
+                anchors.centerIn: parent
+                width: squareSize * chessBoardRoot.pieceScale
+                height: width
+                source: "qrc:/images/" + modelData.piece + ".png"
             }
         }
     }
 
-    Component {
+        Component {
         id: squareDelegate
         Rectangle {
-            width: parent.width /8
-            height: width
-            color: {
-                if (index === chessBoardRoot.highlightFrom) {
-                    return "lightgray";
-                } else if (index === chessBoardRoot.highlightTo) {
-                    return "lightgray";
-                } else {
-                    return BoardUtils.setSquareColor(index);
-                }
-            }
-            x: BoardUtils.setSquareX(index,squareSize);
-            y: BoardUtils.setSquareY(index, squareSize);
-            z: 0 //Ensure squares are underneath pieces
+            id: squareItem
+            width: squareSize
+            height: squareSize
+            x: BoardUtils.setSquareX(index, squareSize)
+            y: BoardUtils.setSquareY(index, squareSize)
+            z: 0
 
-            Text {
-                anchors.centerIn: parent
-                // text: index
-                font.pixelSize: 12
+            color: {
+                if (index === chessBoardRoot.highlightFrom || index === chessBoardRoot.highlightTo) {
+                    return "lightgray";
+                }
+                return BoardUtils.setSquareColor(index);
             }
 
             MouseArea {
                 anchors.fill: parent
-                onClicked: {
-                    console.log("Clicked overall index:", index);
+                onClicked: console.log("Clicked square:", index)
+            }
+        }
+    }
+
+    // 3. Sliding Move Overlay dummy Piece
+    Image {
+        id: animatedPiece
+        width: squareSize * chessBoardRoot.pieceScale
+        height: width
+        z: 10
+        visible: false
+
+        property real offset: (squareSize * (1 - chessBoardRoot.pieceScale)) / 2
+        property int previousMoveIndex: -1
+        property int activeTargetSquare: -1
+
+        property real startX: 0
+        property real startY: 0
+        property real targetX: 0
+        property real targetY: 0
+
+        Connections {
+            target: id_boardHandler
+            function onSgn_isLastMoveForward(isForward) {
+                    var fromIndex = id_boardHandler.lastMoveFrom;
+                    var toIndex = id_boardHandler.lastMoveTo;
+
+                    if (fromIndex < 0 || toIndex < 0) return;
+
+                    var startSq = isForward ? fromIndex : toIndex;
+                    var targetSq = isForward ? toIndex : fromIndex;
+                    animatedPiece.activeTargetSquare = targetSq;
+
+                    var pieceType = chessBoardRoot.getPieceTypeAt(targetSq);
+                    if (pieceType === "") return;
+
+                    animatedPiece.source = "qrc:/images/" + pieceType + ".png";
+
+                    animatedPiece.startX = BoardUtils.setSquareX(startSq, squareSize) + animatedPiece.offset;
+                    animatedPiece.startY = BoardUtils.setSquareY(startSq, squareSize) + animatedPiece.offset;
+                    animatedPiece.targetX = BoardUtils.setSquareX(targetSq, squareSize) + animatedPiece.offset;
+                    animatedPiece.targetY = BoardUtils.setSquareY(targetSq, squareSize) + animatedPiece.offset;
+
+                    animatedPiece.x = animatedPiece.startX;
+                    animatedPiece.y = animatedPiece.startY;
+                    animatedPiece.visible = true;
+
+                    slideAnim.restart();
                 }
+        }
+
+        ParallelAnimation {
+            id: slideAnim
+            NumberAnimation {
+                target: animatedPiece
+                property: "x"
+                to: animatedPiece.targetX
+                duration: 300
+                easing.type: Easing.OutCubic
+            }
+            NumberAnimation {
+                target: animatedPiece
+                property: "y"
+                to: animatedPiece.targetY
+                duration: 300
+                easing.type: Easing.OutCubic
+            }
+            onFinished: {
+                animatedPiece.visible = false;
+                animatedPiece.activeTargetSquare = -1;
             }
         }
     }
