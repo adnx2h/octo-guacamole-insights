@@ -22,29 +22,41 @@ ApplicationWindow {
             id: id_InitialScreen
             visible: state = "st_initial" // Use state to control visibility
             onSgnBtnAnalysisClicked: {
-                id_mainScreen.state = "st_analysisScreen"
-                console.log("Analysis Screen")
+                id_mainScreen.state = "st_analysisScreen";
+                console.log("Analysis Screen");
             }
         }
 
         AnalysisScreen {
             id: id_AnalysisScreen
-            onSgnBtnSettingsClicked: {
-                console.log("Initial Screen")
-                id_mainScreen.state = "id_InitialScreen"
+            onSgnBtnBackClicked: {
+                console.log("Initial Screen");
+                id_mainScreen.state = "id_InitialScreen";
             }
         }
 
         states: [
             State {
                 name: "st_initialScreen"
-                PropertyChanges { target: id_InitialScreen; visible: true }
-                PropertyChanges { target: id_AnalysisScreen; visible: false }
+                PropertyChanges {
+                    target: id_InitialScreen
+                    visible: true
+                }
+                PropertyChanges {
+                    target: id_AnalysisScreen
+                    visible: false
+                }
             },
             State {
                 name: "st_analysisScreen"
-                PropertyChanges { target: id_InitialScreen; visible: false }
-                PropertyChanges { target: id_AnalysisScreen; visible: true }
+                PropertyChanges {
+                    target: id_InitialScreen
+                    visible: false
+                }
+                PropertyChanges {
+                    target: id_AnalysisScreen
+                    visible: true
+                }
             }
         ]
 

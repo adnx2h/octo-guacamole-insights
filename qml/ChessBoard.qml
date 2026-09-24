@@ -52,6 +52,9 @@ Item {
                 width: squareSize * chessBoardRoot.pieceScale
                 height: width
                 source: "qrc:/images/" + modelData.piece + ".png"
+
+                // Counter-rotate the image so pieces remain right-side up
+                rotation: chessBoardRoot.rotation === 180 ? 180 : 0
             }
         }
     }
@@ -87,6 +90,9 @@ Item {
         height: width
         z: 10
         visible: false
+
+        // Counter-rotate overlay piece as well
+        rotation: chessBoardRoot.rotation === 180 ? 180 : 0
 
         property real offset: (squareSize * (1 - chessBoardRoot.pieceScale)) / 2
         property int previousMoveIndex: -1

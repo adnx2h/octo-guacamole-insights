@@ -1,4 +1,4 @@
-import QtQuick 2.0
+import QtQuick 2.12
 import QtQuick.Controls 2.5
 import QtQuick.Layouts 1.15
 import PGN_movesModule 1.0
@@ -7,42 +7,142 @@ Item {
     id: id_AnalysisScreen
     anchors.fill: parent
     visible: false
-    signal sgnBtnSettingsClicked()
+    signal sgnBtnBackClicked
 
     // Property to track the current move index for highlighting
     property int currentMoveIndex: 0
+    property bool explanationLoading: false
+    property string statusMessage: explanationLoading ? "Analyzing..." : "Ready"
 
-    // Use explicit anchors instead of Layout-driven sizing to avoid recursive polish loops.
     Item {
         id: mainColumn
         anchors.fill: parent
         anchors.margins: 8
 
-        Rectangle {
-            id: id_rowLayout_top_bar
+        // Top Bar Container
+        Item {
+            id: id_topBarContainer
             anchors.top: parent.top
             anchors.left: parent.left
             anchors.right: parent.right
-            height: 40
-            color: "transparent"
+            height: 44
 
+            // 1. Back Button (Anchored Left)
             Button {
-                id: id_Btn_Settings
+                id: id_Btn_Back
                 anchors.left: parent.left
                 anchors.verticalCenter: parent.verticalCenter
-                width: 40
                 height: parent.height - 8
-                text: "..."
+
+                contentItem: Text {
+                    text: "← Back"
+                    font.pixelSize: 14
+                    font.bold: true
+                    color: id_Btn_Back.down ? "#1565C0" : "#212121"
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                    leftPadding: 12
+                    rightPadding: 12
+                }
+
+                background: Rectangle {
+                    implicitWidth: 80
+                    color: id_Btn_Back.down ? "#E0E0E0" : (id_Btn_Back.hovered ? "#F5F5F5" : "#FFFFFF")
+                    border.color: id_Btn_Back.hovered ? "#1976D2" : "#D1D5DB"
+                    border.width: 1
+                    radius: 8
+
+                    Behavior on color {
+                        ColorAnimation {
+                            duration: 150
+                        }
+                    }
+                }
+
                 onClicked: {
-                    console.log("Settings Button Clicked");
-                    sgnBtnSettingsClicked()
+                    console.log("Back Button Clicked");
+                    sgnBtnBackClicked();
+                }
+            }
+
+            // 2. Status Message Area (Anchored Center)
+            Item {
+                id: id_statusMessageArea
+                anchors.left: id_Btn_Back.right
+                anchors.right: id_Btn_flipBoard.left
+                anchors.leftMargin: 8
+                anchors.rightMargin: 8
+                anchors.verticalCenter: parent.verticalCenter
+                height: parent.height - 8
+
+                RowLayout {
+                    anchors.centerIn: parent
+                    spacing: 6
+
+                    BusyIndicator {
+                        id: statusBusyIndicator
+                        running: id_AnalysisScreen.explanationLoading
+                        visible: id_AnalysisScreen.explanationLoading
+                        Layout.preferredWidth: 20
+                        Layout.preferredHeight: 20
+                    }
+
+                    Text {
+                        id: txtStatus
+                        text: id_AnalysisScreen.statusMessage
+                        font.pixelSize: 13
+                        font.bold: true
+                        color: id_AnalysisScreen.explanationLoading ? "#1976D2" : "#616161"
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                        elide: Text.ElideRight
+                    }
+                }
+            }
+
+            // 3. Flip Board Button (Anchored Right)
+            Button {
+                id: id_Btn_flipBoard
+                anchors.right: parent.right
+                anchors.verticalCenter: parent.verticalCenter
+                height: parent.height - 8
+
+                contentItem: Text {
+                    text: "↺ Flip Board"
+                    font.pixelSize: 14
+                    font.bold: true
+                    color: id_Btn_flipBoard.down ? "#1565C0" : "#212121"
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                    leftPadding: 12
+                    rightPadding: 12
+                }
+
+                background: Rectangle {
+                    implicitWidth: 110
+                    color: id_Btn_flipBoard.down ? "#E0E0E0" : (id_Btn_flipBoard.hovered ? "#F5F5F5" : "#FFFFFF")
+                    border.color: id_Btn_flipBoard.hovered ? "#1976D2" : "#D1D5DB"
+                    border.width: 1
+                    radius: 8
+
+                    Behavior on color {
+                        ColorAnimation {
+                            duration: 150
+                        }
+                    }
+                }
+
+                onClicked: {
+                    console.log("Flip Board Button Clicked");
+                    id_analysisChessBoard.state = (id_analysisChessBoard.state === "rotated" ? "" : "rotated");
                 }
             }
         }
 
+        // Board Row
         Row {
             id: boardRow
-            anchors.top: id_rowLayout_top_bar.bottom
+            anchors.top: id_topBarContainer.bottom
             anchors.topMargin: 8
             anchors.left: parent.left
             anchors.right: parent.right
@@ -63,7 +163,7 @@ Item {
                 // Automatically animate whiteAdvantage whenever it changes
                 Behavior on whiteAdvantage {
                     NumberAnimation {
-                        duration: 500            // Duration in milliseconds
+                        duration: 500 // Duration in milliseconds
                         easing.type: Easing.OutCubic // Smooth deceleration
                     }
                 }
@@ -82,9 +182,20 @@ Item {
                 id: id_analysisChessBoard
                 width: boardRow.boardSize
                 height: width
+
+                states: [
+                    State {
+                        name: "rotated"
+                        PropertyChanges {
+                            target: id_analysisChessBoard
+                            rotation: 180
+                        }
+                    }
+                ]
             }
         }
 
+        // Movements and Comments Section
         Row {
             id: id_movements_comments_buttons_rowL
             anchors.top: boardRow.bottom
@@ -98,115 +209,112 @@ Item {
                 id: id_movementsContainer
                 width: 85
                 height: parent.height
-                // color: "red"
 
                 MovesListModel {
                     id: pgn_movesModel
                 }
 
                 ListView {
-    id: id_listView_movements
-    anchors.fill: parent
-    model: movesModel
-    visible: true
-    clip: true
-    spacing: 2
+                    id: id_listView_movements
+                    anchors.fill: parent
+                    model: movesModel
+                    visible: true
+                    clip: true
+                    spacing: 2
 
+                    delegate: Item {
+                        width: ListView.view.width
+                        height: 36
 
+                        // Alternating row background colors for better scannability
+                        Rectangle {
+                            anchors.fill: parent
+                            anchors.margins: 2
+                            radius: 4
+                            color: (index % 2 === 0) ? "#ffffff" : "#f1f3f5"
 
-    delegate: Item {
-        width: ListView.view.width
-        height: 36
+                            Row {
+                                anchors.fill: parent
+                                anchors.leftMargin: 8
+                                anchors.rightMargin: 8
+                                spacing: 4
 
-        // Alternating row background colors for better scannability
-        Rectangle {
-            anchors.fill: parent
-            anchors.margins: 2
-            radius: 4
-            color: (index % 2 === 0) ? "#ffffff" : "#f1f3f5"
+                                // Move Number Column
+                                Text {
+                                    width: parent.width * 0.10
+                                    height: parent.height
+                                    text: model.moveNumber + "."
+                                    verticalAlignment: Text.AlignVCenter
+                                    color: "#757575"
+                                    font.pixelSize: 13
+                                    font.bold: true
+                                }
 
-            Row {
-                anchors.fill: parent
-                anchors.leftMargin: 8
-                anchors.rightMargin: 8
-                spacing: 4
+                                // White Move Pill
+                                Rectangle {
+                                    width: parent.width * 0.42
+                                    height: parent.height - 4
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    radius: 4
+                                    color: (id_AnalysisScreen.currentMoveIndex === index * 2) ? "#1976D2" : "transparent"
 
-                // Move Number Column
-                Text {
-                    width: parent.width * 0.10
-                    height: parent.height
-                    text: model.moveNumber + "."
-                    verticalAlignment: Text.AlignVCenter
-                    color: "#757575"
-                    font.pixelSize: 13
-                    font.bold: true
-                }
+                                    Text {
+                                        id: id_txtWhiteMove
+                                        anchors.fill: parent
+                                        anchors.leftMargin: 6
+                                        text: model.whiteMove || ""
+                                        verticalAlignment: Text.AlignVCenter
+                                        color: (id_AnalysisScreen.currentMoveIndex === index * 2) ? "#ffffff" : "#212121"
+                                        font.pixelSize: 14
+                                        font.bold: (id_AnalysisScreen.currentMoveIndex === index * 2)
+                                    }
 
-                // White Move Pill
-                Rectangle {
-                    width: parent.width * 0.42
-                    height: parent.height - 4
-                    anchors.verticalCenter: parent.verticalCenter
-                    radius: 4
-                    color: (id_AnalysisScreen.currentMoveIndex === index * 2) ? "#1976D2" : "transparent"
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        hoverEnabled: true
+                                        cursorShape: Qt.PointingHandCursor
+                                        onClicked: {
+                                            if (model.moveItemObject) {
+                                                console.log(model.moveItemObject.moveNumber, " White move: ", model.moveItemObject.whiteMove)
+                                            }
+                                        }
+                                    }
+                                }
 
-                    Text {
-                        id: id_txtWhiteMove
-                        anchors.fill: parent
-                        anchors.leftMargin: 6
-                        text: model.whiteMove || ""
-                        verticalAlignment: Text.AlignVCenter
-                        color: (id_AnalysisScreen.currentMoveIndex === index * 2) ? "#ffffff" : "#212121"
-                        font.pixelSize: 14
-                        font.bold: (id_AnalysisScreen.currentMoveIndex === index * 2)
-                    }
+                                // Black Move Pill
+                                Rectangle {
+                                    width: parent.width * 0.42
+                                    height: parent.height - 4
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    radius: 4
+                                    color: (id_AnalysisScreen.currentMoveIndex === index * 2 + 1) ? "#1976D2" : "transparent"
 
-                    MouseArea {
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: {
-                            if (model.moveItemObject) {
-                                console.log(model.moveItemObject.moveNumber, " White move: ", model.moveItemObject.whiteMove)
+                                    Text {
+                                        id: id_txtBlackMove
+                                        anchors.fill: parent
+                                        anchors.leftMargin: 6
+                                        text: model.blackMove || ""
+                                        verticalAlignment: Text.AlignVCenter
+                                        color: (id_AnalysisScreen.currentMoveIndex === index * 2 + 1) ? "#ffffff" : "#212121"
+                                        font.pixelSize: 14
+                                        font.bold: (id_AnalysisScreen.currentMoveIndex === index * 2 + 1)
+                                    }
+
+                                    MouseArea {
+                                        anchors.fill: parent
+                                        hoverEnabled: true
+                                        cursorShape: Qt.PointingHandCursor
+                                        onClicked: {
+                                            if (model.moveItemObject) {
+                                                console.log(model.moveItemObject.moveNumber, " Black moves: ", model.moveItemObject.blackMove)
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
                 }
-
-                // Black Move Pill
-                Rectangle {
-                    width: parent.width * 0.42
-                    height: parent.height - 4
-                    anchors.verticalCenter: parent.verticalCenter
-                    radius: 4
-                    color: (id_AnalysisScreen.currentMoveIndex === index * 2 + 1) ? "#1976D2" : "transparent"
-
-                    Text {
-                        id: id_txtBlackMove
-                        anchors.fill: parent
-                        anchors.leftMargin: 6
-                        text: model.blackMove || ""
-                        verticalAlignment: Text.AlignVCenter
-                        color: (id_AnalysisScreen.currentMoveIndex === index * 2 + 1) ? "#ffffff" : "#212121"
-                        font.pixelSize: 14
-                        font.bold: (id_AnalysisScreen.currentMoveIndex === index * 2 + 1)
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: {
-                            if (model.moveItemObject) {
-                                console.log(model.moveItemObject.moveNumber, " Black moves: ", model.moveItemObject.blackMove)
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
             }
 
             Column {
@@ -243,73 +351,74 @@ Item {
                     spacing: 5
 
                     // Previous Move Button
-        Button {
-            id: id_btn_Previous
-            enabled: false
-            width: (parent.width - parent.spacing) / 2
-            height: parent.height
-            text: "◄ Previous"
+                    Button {
+                        id: id_btn_Previous
+                        enabled: false
+                        width: (parent.width - parent.spacing) / 2
+                        height: parent.height
+                        text: "◄ Previous"
 
-            contentItem: Text {
-                text: id_btn_Previous.text
-                font.bold: true
-                font.pixelSize: 14
-                color: id_btn_Previous.enabled ? "white" : "#9e9e9e"
-                horizontalAlignment: Text.AlignHCenter
-                verticalAlignment: Text.AlignVCenter
-            }
+                        contentItem: Text {
+                            text: id_btn_Previous.text
+                            font.bold: true
+                            font.pixelSize: 14
+                            color: id_btn_Previous.enabled ? "white" : "#9e9e9e"
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
 
-            background: Rectangle {
-                color: !id_btn_Previous.enabled ? "#e0e0e0" : (id_btn_Previous.down ? "#1565C0" : "#1976D2")
-                radius: 6
-            }
+                        background: Rectangle {
+                            color: !id_btn_Previous.enabled ? "#e0e0e0" : (id_btn_Previous.down ? "#1565C0" : "#1976D2")
+                            radius: 6
+                        }
 
-            onClicked: {
-                console.log("Previous move");
-                id_boardHandler.prevMove();
-                currentMoveIndex = id_boardHandler.getCurrentMoveIndex();
-                id_TextArea_explanation.text = id_aiHandler.gameExplanations[id_boardHandler.getCurrentMoveIndex()]?.explanation || "No explanation available.";
-            }
-        }
+                        onClicked: {
+                            console.log("Previous move");
+                            id_boardHandler.prevMove();
+                            currentMoveIndex = id_boardHandler.getCurrentMoveIndex();
+                            id_TextArea_explanation.text = id_aiHandler.gameExplanations[id_boardHandler.getCurrentMoveIndex()]?.explanation || "No explanation available.";
+                        }
+                    }
 
-        // Next Move Button
-        Button {
-            id: id_btn_Next
-            enabled: false
-            width: (parent.width - parent.spacing) / 2
-            height: parent.height
-            text: "Next ►"
+                    // Next Move Button
+                    Button {
+                        id: id_btn_Next
+                        enabled: false
+                        width: (parent.width - parent.spacing) / 2
+                        height: parent.height
+                        text: "Next ►"
 
-            contentItem: Text {
-                text: id_btn_Next.text
-                font.bold: true
-                font.pixelSize: 14
-                color: id_btn_Next.enabled ? "white" : "#9e9e9e"
-                horizontalAlignment: Text.AlignHCenter
-                verticalAlignment: Text.AlignVCenter
-            }
+                        contentItem: Text {
+                            text: id_btn_Next.text
+                            font.bold: true
+                            font.pixelSize: 14
+                            color: id_btn_Next.enabled ? "white" : "#9e9e9e"
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
 
-            background: Rectangle {
-                color: !id_btn_Next.enabled ? "#e0e0e0" : (id_btn_Next.down ? "#1565C0" : "#1976D2")
-                radius: 6
-            }
+                        background: Rectangle {
+                            color: !id_btn_Next.enabled ? "#e0e0e0" : (id_btn_Next.down ? "#1565C0" : "#1976D2")
+                            radius: 6
+                        }
 
-            onClicked: {
-                console.log("Next move");
-                id_boardHandler.nextMove();
-                currentMoveIndex = id_boardHandler.getCurrentMoveIndex();
-                id_TextArea_explanation.text = id_aiHandler.gameExplanations[id_boardHandler.getCurrentMoveIndex()]?.explanation || "No explanation available.";
-            }
+                        onClicked: {
+                            console.log("Next move");
+                            id_boardHandler.nextMove();
+                            currentMoveIndex = id_boardHandler.getCurrentMoveIndex();
+                            id_TextArea_explanation.text = id_aiHandler.gameExplanations[id_boardHandler.getCurrentMoveIndex()]?.explanation || "No explanation available.";
+                        }
                     }
                 }
             }
         }
     }
+
     Connections {
         target: id_boardHandler
 
         function onSgn_evalPositionsChanged(newEval) {
-            // console.log("Evaluation is:  " + newEval )
+            // console.log("Evaluation is: " + newEval )
             var whiteHeightRatio = (newEval + 100) / 200; // Normalize -100 to 100 to 0 to 1
             id_whiteEvaluationBar.whiteAdvantage = whiteHeightRatio
         }
@@ -319,8 +428,7 @@ Item {
             id_analysisChessBoard.highlightTo = id_boardHandler.lastMoveTo
         }
     }
-    // Property to track AI loading status
-    property bool explanationLoading: false
+
     // Connections for AI explanation
     Connections {
         target: id_aiHandler
@@ -340,11 +448,11 @@ Item {
         function onGameExplanationReady(moveExplanations) {
             // console.log("Explanations received:", moveExplanations.length)
             for (let i = 0; i < moveExplanations.length; i++) {
-                console.log("Move", moveExplanations[i].moveIndex, moveExplanations[i].explanation)
+                console.log("Move", moveExplanations[i].moveIndex, moveExplanations[i].explanation);
             }
-            id_btn_Next.enabled = true
-            id_btn_Previous.enabled = true
-            currentMoveIndex = 0
+            id_btn_Next.enabled = true;
+            id_btn_Previous.enabled = true;
+            currentMoveIndex = 0;
         }
     }
 }
