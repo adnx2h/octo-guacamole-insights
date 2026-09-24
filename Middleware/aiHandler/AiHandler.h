@@ -25,7 +25,7 @@ Q_DECLARE_METATYPE(GameExplanation)
 class AiHandler : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QList<GameExplanation> gameExplanations READ gameExplanations NOTIFY gameExplanationReady)
+    Q_PROPERTY(QList<GameExplanation> gameExplanations READ gameExplanations NOTIFY sgn_gameExplanationReady)
 public:
     explicit AiHandler(QObject *parent = nullptr);
     void newStockfishEvaluationReceived(const int eval);
@@ -56,9 +56,9 @@ signals:
     //Signal for AI explanation
     void moveExplanationReady(const QString& explanation);
     // Signal for when AI request starts/ends (for loading indicators)
-    void explanationRequestStatus(bool isLoading);
-    void aiError(const QString& error);
-    void gameExplanationReady(const QList<GameExplanation>& moveExplanations); // Changed from QPair to GameExplanation
+    void sgn_explanationRequestStatus(bool isLoading);
+    void sgn_aiError(const QString& error);
+    void sgn_gameExplanationReady(const QList<GameExplanation>& moveExplanations); // Changed from QPair to GameExplanation
 
 private slots:
     // Slot to handle AI API response

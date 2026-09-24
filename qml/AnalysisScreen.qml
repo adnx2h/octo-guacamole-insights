@@ -12,7 +12,14 @@ Item {
     // Property to track the current move index for highlighting
     property int currentMoveIndex: 0
     property bool explanationLoading: false
-    property string statusMessage: explanationLoading ? "Analyzing..." : "Ready"
+
+    // Analysis State Tracking
+    property string analysisState: "ready" // "stockfish", "ai", or "ready"
+    property string statusMessage: {
+        if (analysisState === "stockfish") return "Stockfish Analyzing..."
+        if (analysisState === "ai") return "AI Interpreting..."
+        return "Ready"
+    }
 
     Item {
         id: mainColumn
@@ -81,18 +88,18 @@ Item {
 
                     BusyIndicator {
                         id: statusBusyIndicator
-                        running: id_AnalysisScreen.explanationLoading
-                        visible: id_AnalysisScreen.explanationLoading
+                        running: id_AnalysisScreen.analysisState !== "ready"
+                        visible: id_AnalysisScreen.analysisState !== "ready"
                         Layout.preferredWidth: 20
                         Layout.preferredHeight: 20
                     }
 
                     Text {
-                        id: txtStatus
+                        id: id_txtStatus
                         text: id_AnalysisScreen.statusMessage
                         font.pixelSize: 13
                         font.bold: true
-                        color: id_AnalysisScreen.explanationLoading ? "#1976D2" : "#616161"
+                        color: id_AnalysisScreen.analysisState !== "ready" ? "#1976D2" : "#616161"
                         horizontalAlignment: Text.AlignHCenter
                         verticalAlignment: Text.AlignVCenter
                         elide: Text.ElideRight
@@ -427,8 +434,11 @@ Item {
             id_analysisChessBoard.highlightFrom = id_boardHandler.lastMoveFrom
             id_analysisChessBoard.highlightTo = id_boardHandler.lastMoveTo
         }
+        //Stockfish start analysis
+        function onSgn_uciMovesReady(){
+            id_AnalysisScreen.analysisState = "stockfish";
+        }
     }
-
     // Connections for AI explanation
     Connections {
         target: id_aiHandler
@@ -438,14 +448,17 @@ Item {
             loadingText.visible = false;
         }
 
-        function onExplanationRequestStatus(isLoading) {
+        function onSgn_explanationRequestStatus(isLoading) {
             explanationLoading = isLoading;
             if (isLoading) {
                 id_TextArea_explanation.text = ""; // Clear previous explanation
+                id_AnalysisScreen.analysisState = "ai";
+            }else{
+                id_AnalysisScreen.analysisState = "ready";
             }
         }
 
-        function onGameExplanationReady(moveExplanations) {
+        function onsgn_gameExplanationReady(moveExplanations) {
             // console.log("Explanations received:", moveExplanations.length)
             for (let i = 0; i < moveExplanations.length; i++) {
                 console.log("Move", moveExplanations[i].moveIndex, moveExplanations[i].explanation);
@@ -453,6 +466,19 @@ Item {
             id_btn_Next.enabled = true;
             id_btn_Previous.enabled = true;
             currentMoveIndex = 0;
+            id_AnalysisScreen.analysisState = "ready";
+        }
+    }
+    Connections{
+        target: id_engineHandler
+
+        function onSgn_stockfishAnalysisComplete(){
+        // Transition to AI interpretation or back to ready
+            if (id_AnalysisScreen.explanationLoading) {
+                id_AnalysisScreen.analysisState = "ai";
+            } else {
+                id_AnalysisScreen.analysisState = "ready";
+            }
         }
     }
 }

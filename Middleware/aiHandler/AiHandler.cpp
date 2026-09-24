@@ -26,7 +26,7 @@ AiHandler::AiHandler(QObject *parent)
 
 void AiHandler::requestMoveExplanation(const QString& fenBeforeMove, const QString& moveMade, int evaluation)
 {
-    emit explanationRequestStatus(true); // Indicate loading
+    emit sgn_explanationRequestStatus(true); // Indicate loading
 
     // Construct the prompt for the AI
     QString evalDescription;
@@ -89,7 +89,7 @@ void AiHandler::requestGameExplanation(const QString& gameAnalysisJson)
         return;
     }
 
-    emit explanationRequestStatus(true); // Indicate loading
+    emit sgn_explanationRequestStatus(true); // Indicate loading
 
     // The Gemini API requires the prompt/query to be wrapped inside the "text" field
     // of a "user" role object in the 'contents' array.
@@ -139,7 +139,7 @@ void AiHandler::requestGameExplanation(const QString& gameAnalysisJson)
 
 void AiHandler::onGeminiSingleMoveReply(QNetworkReply* reply)
 {
-    emit explanationRequestStatus(false); // Indicate loading finished
+    emit sgn_explanationRequestStatus(false); // Indicate loading finished
 
     if (reply->error() == QNetworkReply::NoError) {
         QByteArray responseData = reply->readAll();
@@ -172,7 +172,7 @@ void AiHandler::onGeminiSingleMoveReply(QNetworkReply* reply)
         }
     } else {
         qWarning() << "Gemini API Error:" << reply->errorString();
-        emit aiError("AI Explanation Error: " + reply->errorString());
+        emit sgn_aiError("AI Explanation Error: " + reply->errorString());
     }
     reply->deleteLater();
 }
@@ -180,12 +180,12 @@ void AiHandler::onGeminiSingleMoveReply(QNetworkReply* reply)
 void AiHandler::onGeminiGameApiReply(QNetworkReply* reply)
 {
     qDebug() << "onGeminiGameApiReply";
-    emit explanationRequestStatus(false); // Indicate loading finished
+    emit sgn_explanationRequestStatus(false); // Indicate loading finished
     m_gameExplanations.clear();          // Clear previous analysis
 
     if (reply->error() != QNetworkReply::NoError) {
         qWarning() << "Gemini API Error (Game):" << reply->errorString();
-        emit aiError("Game Explanation Error: " + reply->errorString());
+        emit sgn_aiError("Game Explanation Error: " + reply->errorString());
         reply->deleteLater();
         return;
     }
@@ -237,7 +237,7 @@ void AiHandler::onGeminiGameApiReply(QNetworkReply* reply)
     qDebug() << "Raw Commentary Text:" << rawCommentaryText;
     if (!commentaryDoc.isObject()) {
         qWarning() << "Error: AI response is not a valid JSON object. Got:" << rawCommentaryText;
-        emit aiError("AI response error: Could not parse analysis JSON.");
+        emit sgn_aiError("AI response error: Could not parse analysis JSON.");
         return;
     }
 
@@ -264,7 +264,7 @@ void AiHandler::onGeminiGameApiReply(QNetworkReply* reply)
     // 4. Signal readiness and make the stored data available
     qDebug() << "Successfully stored" << m_gameExplanations.size() << "move explanations.";
     //commented out to test locally
-    emit gameExplanationReady(m_gameExplanations);
+    emit sgn_gameExplanationReady(m_gameExplanations);
 }
 //Receive each new Stockfish Evaluation
 void AiHandler::newStockfishEvaluationReceived(int eval){
