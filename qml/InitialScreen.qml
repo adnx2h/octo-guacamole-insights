@@ -9,7 +9,7 @@ Item {
     height: id_appWindow.height
     visible: false
 
-    signal sgnBtnAnalysisClicked()
+    signal sgnBtnAnalysisClicked
 
     // Helper property to store the PGN string to analyze
     property string selectedPgn: ""
@@ -65,8 +65,8 @@ Item {
                         text: qsTr("Fetch Games")
                         onClicked: {
                             // TODO: Trigger your C++ or JS network request here to populate listModelGames
-                            id_chessComHandler.fetchRecentGames(tfUsername.text)
-                            console.log("Fetching recent games for:", tfUsername.text)
+                            id_chessComHandler.fetchRecentGames(tfUsername.text);
+                            console.log("Fetching recent games for:", tfUsername.text);
                         }
                     }
                 }
@@ -127,8 +127,8 @@ Item {
                         MouseArea {
                             anchors.fill: parent
                             onClicked: {
-                                lvChessComGames.currentIndex = index
-                                id_InitialScreen.selectedPgn = model.pgnData
+                                lvChessComGames.currentIndex = index;
+                                id_InitialScreen.selectedPgn = model.pgnData;
                             }
                         }
 
@@ -242,25 +242,25 @@ Item {
             }
 
             onClicked: {
-                var pgnToAnalyze = ""
+                var pgnToAnalyze = "";
 
                 if (rbChessCom.checked) {
                     // Pull selected game PGN or fallback to active property
                     if (lvChessComGames.currentIndex >= 0 && listModelGames.count > 0) {
-                        pgnToAnalyze = listModelGames.get(lvChessComGames.currentIndex).pgnData
+                        pgnToAnalyze = listModelGames.get(lvChessComGames.currentIndex).pgnData;
                     } else {
-                        pgnToAnalyze = id_InitialScreen.selectedPgn
+                        pgnToAnalyze = id_InitialScreen.selectedPgn;
                     }
                 } else {
-                    pgnToAnalyze = id_pgnInput.text
+                    pgnToAnalyze = id_pgnInput.text;
                 }
 
                 if (pgnToAnalyze !== "") {
-                    console.log("Analyzing Selected PGN:\n", pgnToAnalyze)
-                    sgnBtnAnalysisClicked()
-                    id_boardHandler.parsePgn(pgnToAnalyze)
+                    console.log("Analyzing Selected PGN:\n", pgnToAnalyze);
+                    sgnBtnAnalysisClicked();
+                    id_boardHandler.parsePgn(pgnToAnalyze);
                 } else {
-                    console.log("No valid PGN selected or pasted.")
+                    console.log("No valid PGN selected or pasted.");
                 }
             }
         }
@@ -268,17 +268,17 @@ Item {
     Connections {
         target: id_chessComHandler
 
-        onSgn_gamesFetchedSuccess: function(gamesList) {
-            listModelGames.clear()
+        onSgn_gamesFetchedSuccess: function (gamesList) {
+            listModelGames.clear();
 
             for (var i = 0; i < gamesList.length; i++) {
-                var g = gamesList[i]
+                var g = gamesList[i];
 
                 // Determine result & color based on active user
-                var isUserWhite = (g.whiteUser.toLowerCase() === tfUsername.text.toLowerCase())
-                var opponent = isUserWhite ? g.blackUser : g.whiteUser
-                var opponentRating = isUserWhite ? g.blackRating : g.whiteRating
-                var result = isUserWhite ? g.whiteResult : g.blackResult
+                var isUserWhite = (g.whiteUser.toLowerCase() === tfUsername.text.toLowerCase());
+                var opponent = isUserWhite ? g.blackUser : g.whiteUser;
+                var opponentRating = isUserWhite ? g.blackRating : g.whiteRating;
+                var result = isUserWhite ? g.whiteResult : g.blackResult;
 
                 var resInfo = getResultDetails(result);
 
@@ -292,27 +292,36 @@ Item {
                     "timeControl": g.timeControl.toUpperCase(),
                     "ending": "",
                     "pgnData": g.pgn
-                })
+                });
             }
         }
 
-        onSgn_gamesFetchFailed: function(errorMsg) {
-            console.warn("Chess.com Fetch Error:", errorMsg)
+        onSgn_gamesFetchFailed: function (errorMsg) {
+            console.warn("Chess.com Fetch Error:", errorMsg);
         }
     }
     // Helper function to derive display label and color from raw API result
     function getResultDetails(rawResult) {
         if (rawResult === "win") {
-                return { text: "WIN", color: "#2e7d32" };
-            }
+            return {
+                text: "WIN",
+                color: "#2e7d32"
+            };
+        }
 
-            // Check for standard draw conditions
-            var drawResults = ["repetition", "insufficient", "stalemate", "agreed", "50move", "timevsinsufficient"];
-            if (drawResults.indexOf(rawResult) !== -1) {
-                return { text: "DRAW", color: "#757575" };
-            }
+        // Check for standard draw conditions
+        var drawResults = ["repetition", "insufficient", "stalemate", "agreed", "50move", "timevsinsufficient"];
+        if (drawResults.indexOf(rawResult) !== -1) {
+            return {
+                text: "DRAW",
+                color: "#757575"
+            };
+        }
 
-            // Default remaining statuses (checkmated, resigned, timeout, abandoned) to LOSS
-            return { text: "LOSS", color: "#c62828" };
+        // Default remaining statuses (checkmated, resigned, timeout, abandoned) to LOSS
+        return {
+            text: "LOSS",
+            color: "#c62828"
+        };
     }
 }

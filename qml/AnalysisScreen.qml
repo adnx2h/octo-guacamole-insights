@@ -16,9 +16,11 @@ Item {
     // Analysis State Tracking
     property string analysisState: "ready" // "stockfish", "ai", or "ready"
     property string statusMessage: {
-        if (analysisState === "stockfish") return "Stockfish Analyzing..."
-        if (analysisState === "ai") return "AI Interpreting..."
-        return "Ready"
+        if (analysisState === "stockfish")
+            return "Stockfish Analyzing...";
+        if (analysisState === "ai")
+            return "AI Interpreting...";
+        return "Ready";
     }
 
     Item {
@@ -282,7 +284,7 @@ Item {
                                         cursorShape: Qt.PointingHandCursor
                                         onClicked: {
                                             if (model.moveItemObject) {
-                                                console.log(model.moveItemObject.moveNumber, " White move: ", model.moveItemObject.whiteMove)
+                                                console.log(model.moveItemObject.moveNumber, " White move: ", model.moveItemObject.whiteMove);
                                             }
                                         }
                                     }
@@ -313,7 +315,7 @@ Item {
                                         cursorShape: Qt.PointingHandCursor
                                         onClicked: {
                                             if (model.moveItemObject) {
-                                                console.log(model.moveItemObject.moveNumber, " Black moves: ", model.moveItemObject.blackMove)
+                                                console.log(model.moveItemObject.moveNumber, " Black moves: ", model.moveItemObject.blackMove);
                                             }
                                         }
                                     }
@@ -427,15 +429,15 @@ Item {
         function onSgn_evalPositionsChanged(newEval) {
             // console.log("Evaluation is: " + newEval )
             var whiteHeightRatio = (newEval + 100) / 200; // Normalize -100 to 100 to 0 to 1
-            id_whiteEvaluationBar.whiteAdvantage = whiteHeightRatio
+            id_whiteEvaluationBar.whiteAdvantage = whiteHeightRatio;
         }
 
         function onLastMoveChanged() {
-            id_analysisChessBoard.highlightFrom = id_boardHandler.lastMoveFrom
-            id_analysisChessBoard.highlightTo = id_boardHandler.lastMoveTo
+            id_analysisChessBoard.highlightFrom = id_boardHandler.lastMoveFrom;
+            id_analysisChessBoard.highlightTo = id_boardHandler.lastMoveTo;
         }
         //Stockfish start analysis
-        function onSgn_uciMovesReady(){
+        function onSgn_uciMovesReady() {
             id_AnalysisScreen.analysisState = "stockfish";
         }
     }
@@ -453,7 +455,7 @@ Item {
             if (isLoading) {
                 id_TextArea_explanation.text = ""; // Clear previous explanation
                 id_AnalysisScreen.analysisState = "ai";
-            }else{
+            } else {
                 id_AnalysisScreen.analysisState = "ready";
             }
         }
@@ -469,11 +471,11 @@ Item {
             id_AnalysisScreen.analysisState = "ready";
         }
     }
-    Connections{
+    Connections {
         target: id_engineHandler
 
-        function onSgn_stockfishAnalysisComplete(){
-        // Transition to AI interpretation or back to ready
+        function onSgn_stockfishAnalysisComplete() {
+            // Transition to AI interpretation or back to ready
             if (id_AnalysisScreen.explanationLoading) {
                 id_AnalysisScreen.analysisState = "ai";
             } else {

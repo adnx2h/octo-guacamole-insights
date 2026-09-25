@@ -39,15 +39,19 @@ EngineHandler::~EngineHandler()
 
 void EngineHandler::startEngine()
 {
-    if (stockfishProcess->state() == QProcess::NotRunning) {
+    if (stockfishProcess->state() == QProcess::NotRunning)
+    {
         const QString path = stockfishPath();
         qDebug() << "Starting Stockfish engine from:" << path;
-        if (path.isEmpty()) {
+        if (path.isEmpty())
+        {
             emit engineError("Android Stockfish could not be prepared.");
             return;
         }
         stockfishProcess->start(path);
-    } else {
+    }
+    else
+    {
         qDebug() << "Stockfish already running or starting.";
     }
 }
@@ -58,7 +62,8 @@ QString EngineHandler::stockfishPath() const
     const QJniObject context = QJniObject::callStaticObjectMethod(
         "android/app/ActivityThread", "currentApplication",
         "()Landroid/app/Application;");
-    if (!context.isValid()) {
+    if (!context.isValid())
+    {
         qWarning() << "Unable to obtain the Android application context.";
         return {};
     }
@@ -67,7 +72,8 @@ QString EngineHandler::stockfishPath() const
     const QJniObject nativeLibraryDir = applicationInfo.getObjectField<jstring>(
         "nativeLibraryDir");
     const QString path = nativeLibraryDir.toString() + "/libstockfish.so";
-    if (!QFile::exists(path)) {
+    if (!QFile::exists(path))
+    {
         qWarning() << "Android Stockfish was not deployed at:" << path;
         return {};
     }
@@ -79,26 +85,31 @@ QString EngineHandler::stockfishPath() const
 
 void EngineHandler::stopEngine()
 {
-    if (stockfishProcess->state() != QProcess::NotRunning) {
+    if (stockfishProcess->state() != QProcess::NotRunning)
+    {
         qDebug() << "Stopping Stockfish engine.";
         stockfishProcess->write("quit\n");
         stockfishProcess->waitForBytesWritten();
         stockfishProcess->closeWriteChannel();
         stockfishProcess->waitForFinished(2000);
-        if (stockfishProcess->state() != QProcess::NotRunning) {
+        if (stockfishProcess->state() != QProcess::NotRunning)
+        {
             stockfishProcess->kill();
             qDebug() << "Stockfish force killed.";
         }
     }
 }
 
-void EngineHandler::sendCommand(const QString& command)
+void EngineHandler::sendCommand(const QString &command)
 {
-    if (stockfishProcess->state() == QProcess::Running) {
+    if (stockfishProcess->state() == QProcess::Running)
+    {
         // qDebug() << "Sending command to Stockfish:" << command;
         stockfishProcess->write((command + "\n").toUtf8());
         stockfishProcess->waitForBytesWritten();
-    } else {
+    }
+    else
+    {
         qWarning() << "Cannot send command: Stockfish not running.";
         emit engineError("Engine not running. Please start it first.");
     }
@@ -123,7 +134,8 @@ void EngineHandler::analyzePosition(const QString &fen, const QString &moves)
     sendCommand("stop");
     // Set the position
     QString positionCommand = "position " + fen;
-    if (!moves.isEmpty()) {
+    if (!moves.isEmpty())
+    {
         positionCommand += " moves " + moves;
     }
     sendCommand(positionCommand);
@@ -136,10 +148,14 @@ void EngineHandler::analyzePosition(const QString &fen, const QString &moves)
 void EngineHandler::uciMovesReceived(QStringList uciList)
 {
     QString compoundUciMove;
-    for(QString uci : uciList){
-        if(compoundUciMove != ""){
+    for (QString uci : uciList)
+    {
+        if (compoundUciMove != "")
+        {
             compoundUciMove = compoundUciMove + " " + uci;
-        }else{
+        }
+        else
+        {
             compoundUciMove = uci;
         }
         m_uciCumulativeMoves.enqueue(compoundUciMove);
@@ -148,19 +164,23 @@ void EngineHandler::uciMovesReceived(QStringList uciList)
     // emit sgn_uciMovesReady();
 }
 
-void EngineHandler::processNextQueuedAnalysis(){
-    if(isEngineReady && !m_uciCumulativeMoves.isEmpty() && !m_isStockfishBusy) {
+void EngineHandler::processNextQueuedAnalysis()
+{
+    if (isEngineReady && !m_uciCumulativeMoves.isEmpty() && !m_isStockfishBusy)
+    {
         // Store current move string so readStandardOutput can safely calculate side to move
-        m_currentAnalyzingMove = m_uciCumulativeMoves.dequeue(); 
+        m_currentAnalyzingMove = m_uciCumulativeMoves.dequeue();
         m_isStockfishBusy = true;
         analyzePosition("startpos", m_currentAnalyzingMove);
     }
-    else if(m_uciCumulativeMoves.isEmpty()){
-        qDebug()<<"Stockfish analisis complete";
+    else if (m_uciCumulativeMoves.isEmpty())
+    {
+        qDebug() << "Stockfish analisis complete";
         emit sgn_stockfishAnalysisComplete();
     }
-    else{
-        qDebug()<<"Stockfish not ready or busy";
+    else
+    {
+        qDebug() << "Stockfish not ready or busy";
     }
 }
 
@@ -171,23 +191,27 @@ void EngineHandler::readStandardOutput()
     // Append to buffer for multi-line parsing if needed, or process line by line
     // For evaluation, we often get multiple 'info' lines, so processing each line is good.
     QStringList lines = output.split('\n', Qt::SkipEmptyParts);
-    static int counter =0;
+    static int counter = 0;
 
-    for (const QString& line : lines) {
+    for (const QString &line : lines)
+    {
         // qDebug() << "Stockfish Line:" << line;
         emit engineOutputReady(line); // Emit raw line for general logging
 
         // Parse for evaluation (cp or mate)
-        if (line.startsWith("info") && line.contains(" score ")) {
-            
+        if (line.startsWith("info") && line.contains(" score "))
+        {
+
             bool isWhiteToMove = true;
-            if (!m_currentAnalyzingMove.trimmed().isEmpty()) {
+            if (!m_currentAnalyzingMove.trimmed().isEmpty())
+            {
                 int plyCount = m_currentAnalyzingMove.trimmed().split(' ', Qt::SkipEmptyParts).size();
-                isWhiteToMove = (plyCount % 2 == 0); 
+                isWhiteToMove = (plyCount % 2 == 0);
             }
 
             QRegularExpressionMatch cpMatch = cpRegex.match(line);
-            if (cpMatch.hasMatch()) {
+            if (cpMatch.hasMatch())
+            {
                 int rawCp = cpMatch.captured(1).toInt();
                 currentCp = isWhiteToMove ? rawCp : -rawCp;
                 foundCp = true;
@@ -196,25 +220,33 @@ void EngineHandler::readStandardOutput()
             }
 
             QRegularExpressionMatch mateMatch = mateRegex.match(line);
-            if (mateMatch.hasMatch()) {
+            if (mateMatch.hasMatch())
+            {
                 int rawMate = mateMatch.captured(1).toInt();
                 currentMate = isWhiteToMove ? rawMate : -rawMate;
                 foundMate = true;
                 foundCp = false;
                 currentCp = 0;
             }
-
-        } else if (line.contains("uciok")) {
+        }
+        else if (line.contains("uciok"))
+        {
             sendCommand("isready");
-        } else if (line.contains("readyok")) {
+        }
+        else if (line.contains("readyok"))
+        {
             isEngineReady = true;
             emit sgn_engineReady();
-        } else if (line.startsWith("bestmove")) {
-            if (isEngineReady) {
+        }
+        else if (line.startsWith("bestmove"))
+        {
+            if (isEngineReady)
+            {
 
                 // If Stockfish returns "bestmove (none)", the position is terminal (Checkmate or Stalemate).
                 // If it was checkmate, force currentMate based on the last player who moved.
-                if (line.contains("(none)") || (!foundMate && currentCp == 0)) {
+                if (line.contains("(none)") || (!foundMate && currentCp == 0))
+                {
                     int plyCount = m_currentAnalyzingMove.trimmed().split(' ', Qt::SkipEmptyParts).size();
 
                     // If plyCount is odd, White made the last move and delivered checkmate (+1 -> 100)
@@ -224,9 +256,10 @@ void EngineHandler::readStandardOutput()
                     foundCp = false;
                 }
 
-                if (foundCp || foundMate) {
+                if (foundCp || foundMate)
+                {
                     normalizedEval = normalizeEvaluation(currentCp, currentMate);
-                    qDebug()<<counter<< "cp:"<<currentCp << "mate:" << currentMate << "normal:" << normalizedEval;
+                    qDebug() << counter << "cp:" << currentCp << "mate:" << currentMate << "normal:" << normalizedEval;
                     counter++;
 
                     emit sgn_newEvaluation(normalizedEval);
@@ -276,7 +309,8 @@ void EngineHandler::processErrorOccurred(QProcess::ProcessError error)
 int EngineHandler::normalizeEvaluation(int cp, int mate)
 {
     // Checkmate always results in a full bar (+100 or -100)
-    if (mate != 0) {
+    if (mate != 0)
+    {
         return (mate > 0) ? 100 : -100;
     }
 

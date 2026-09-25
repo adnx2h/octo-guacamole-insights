@@ -7,11 +7,13 @@ BoardHandler::BoardHandler(QObject *parent)
 {
 }
 
-void BoardHandler::newEvaluation(int ev){
+void BoardHandler::newEvaluation(int ev)
+{
     m_movesEvaluations.append(ev);
 }
 
-bool BoardHandler::isValidPGN(const QString &pgn) {
+bool BoardHandler::isValidPGN(const QString &pgn)
+{
     // PGN validation using regular expressions
     //  Check for White/Black tags, and result.
 
@@ -43,15 +45,18 @@ bool BoardHandler::isValidPGN(const QString &pgn) {
     return valid;
 }
 
-QString BoardHandler::cleanPgnForParsing(const QString &rawPgn) {
-    //Clean from chess.com format
-    // 1. Separate Headers from Moves (split at the first double newline)
+QString BoardHandler::cleanPgnForParsing(const QString &rawPgn)
+{
+    // Clean from chess.com format
+    //  1. Separate Headers from Moves (split at the first double newline)
     int moveStartIdx = rawPgn.indexOf("\n\n");
-    if (moveStartIdx == -1) {
+    if (moveStartIdx == -1)
+    {
         moveStartIdx = rawPgn.indexOf("\r\n\r\n");
     }
 
-    if (moveStartIdx == -1) {
+    if (moveStartIdx == -1)
+    {
         // Fallback if no double newline exists: clean whole text without multi-line swallow
         QString moves = rawPgn;
         moves.remove(QRegularExpression(R"(\{[\s\S]*?\})"));
@@ -78,7 +83,8 @@ QString BoardHandler::cleanPgnForParsing(const QString &rawPgn) {
 }
 
 // Function to parse a PGN chess game
-void BoardHandler::parsePgn(const QString& pgnString) {
+void BoardHandler::parsePgn(const QString &pgnString)
+{
 
     QString cleanedString = cleanPgnForParsing(pgnString);
 
@@ -93,18 +99,23 @@ void BoardHandler::parsePgn(const QString& pgnString) {
 
     emit sgn_startEngine();
 
-    if(isValidPGN(cleanedString)){
+    if (isValidPGN(cleanedString))
+    {
         qDebug() << "PGN Valid";
         QRegularExpression moveOnlyRegex("([^\\s.]+)(?=\\s+|$)");
         QRegularExpression tagRegex("\\[(\\w+)\\s+\"([^\"]*)\"\\]");
         QRegularExpression resultRegex("(\\s*)(1-0|0-1|1/2-1/2|\\*)$");
 
         // Process lines to extract tags and build moveText
-        for (const QString& line : lines) {
+        for (const QString &line : lines)
+        {
             QRegularExpressionMatch tagMatch = tagRegex.match(line);
-            if (tagMatch.hasMatch()) {
+            if (tagMatch.hasMatch())
+            {
                 tags[tagMatch.captured(1)] = tagMatch.captured(2);
-            } else if (!line.trimmed().isEmpty() && !line.startsWith(";")) {
+            }
+            else if (!line.trimmed().isEmpty() && !line.startsWith(";"))
+            {
                 moveText += line + " ";
             }
         }
@@ -113,7 +124,8 @@ void BoardHandler::parsePgn(const QString& pgnString) {
         QRegularExpressionMatch resultMatch = resultRegex.match(trimmedMoveText);
 
         // Extract the result if found at the end of the move text
-        if (resultMatch.hasMatch()) {
+        if (resultMatch.hasMatch())
+        {
             result = resultMatch.captured(2); // Capture the actual result (group 2)
             // Trim the result (and any leading whitespace) from the end of the move text
             trimmedMoveText.chop(resultMatch.captured(0).length());
@@ -122,12 +134,13 @@ void BoardHandler::parsePgn(const QString& pgnString) {
 
         // Extract moves from the trimmed move text
         QRegularExpressionMatchIterator moveIterator = moveOnlyRegex.globalMatch(trimmedMoveText);
-        while (moveIterator.hasNext()) {
+        while (moveIterator.hasNext())
+        {
             QRegularExpressionMatch moveMatch = moveIterator.next();
             QString san = moveMatch.captured(1).trimmed();
             moves.append(san);
 
-            chess::Move mo = chess::uci::parseSan(tempBoard,san.toStdString());
+            chess::Move mo = chess::uci::parseSan(tempBoard, san.toStdString());
             m_movesObject.moves.append(mo);
             tempBoard.makeMove(mo);
             toUciMove(mo);
@@ -136,7 +149,7 @@ void BoardHandler::parsePgn(const QString& pgnString) {
         }
 
         m_board = tempBoard;
-        m_board = chess::Board(); //reset the board
+        m_board = chess::Board();     // reset the board
         emit piecePositionsChanged(); // Update QML to show the initial board
 
         pgn_data.tags = tags;
@@ -150,12 +163,14 @@ void BoardHandler::parsePgn(const QString& pgnString) {
         // emit sgn_startEngine();
         emit sgn_uciMovesReady(uciMovesList);
     }
-    else{
-        qDebug()<<"PGN not Valid";
+    else
+    {
+        qDebug() << "PGN not Valid";
     }
 }
 
-void BoardHandler::setFEN(QString& fen) {
+void BoardHandler::setFEN(QString &fen)
+{
     // This function should set the FEN string to the chess engine.
     // For now, we will just print the FEN to debug output.
     qDebug() << "Setting FEN:" << fen;
@@ -165,37 +180,46 @@ void BoardHandler::setFEN(QString& fen) {
     // chessEngine.setFEN(fen);
 }
 
-
-void BoardHandler::getFEN() {
+void BoardHandler::getFEN()
+{
     // This function should return the current FEN string in the chess board
     // For now, we will just emit a signal with a placeholder value.
     QString fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"; // Placeholder FEN
     emit fenReady(fen);
 }
 
-void BoardHandler::prevMove(){
-    if (m_moveIndex >= 0) {
+void BoardHandler::prevMove()
+{
+    if (m_moveIndex >= 0)
+    {
         const chess::Move moveToUnmake = m_movesObject.moves.at(m_moveIndex);
         setLastMove(moveToUnmake);
         m_board.unmakeMove(moveToUnmake);
         m_moveIndex--;
         emit piecePositionsChanged();
         qDebug() << "Prev Move: Index:" << m_moveIndex;
-        if(m_moveIndex >= 0){
+        if (m_moveIndex >= 0)
+        {
             emit sgn_evalPositionsChanged(m_movesEvaluations.at(m_moveIndex));
-            qDebug() <<"Eval: "<<m_movesEvaluations.at(m_moveIndex);
-        }else{
+            qDebug() << "Eval: " << m_movesEvaluations.at(m_moveIndex);
+        }
+        else
+        {
             emit sgn_evalPositionsChanged(0);
-            qDebug() <<"Eval: "<<0;
+            qDebug() << "Eval: " << 0;
         }
         emit sgn_isLastMoveForward(false); // <--- BACKWARD
-    } else {
+    }
+    else
+    {
         qDebug() << "Already at the beginning of the game (initial board state).";
     }
 }
 
-void BoardHandler::nextMove(){
-    if (m_moveIndex < (int)m_movesObject.moves.size() - 1) {
+void BoardHandler::nextMove()
+{
+    if (m_moveIndex < (int)m_movesObject.moves.size() - 1)
+    {
         m_moveIndex++;
         const chess::Move moveToMake = m_movesObject.moves.at(m_moveIndex);
         m_board.makeMove(moveToMake);
@@ -205,16 +229,20 @@ void BoardHandler::nextMove(){
         emit sgn_isLastMoveForward(true); // <--- FORWARD
 
         qDebug() << "Next Move: Index:" << m_moveIndex << "Evaluation:" << m_movesEvaluations.at(m_moveIndex);
-    } else {
+    }
+    else
+    {
         qDebug() << "No More Moves (already at the end of the game).";
     }
 }
 
-int BoardHandler::getCurrentMoveIndex(){
+int BoardHandler::getCurrentMoveIndex()
+{
     return m_moveIndex;
 }
 
-void BoardHandler::toUciMove(chess::Move move){
+void BoardHandler::toUciMove(chess::Move move)
+{
     chess::Square from = move.from();
     chess::Square to = move.to();
 
@@ -234,8 +262,8 @@ QVariantList BoardHandler::piecePositions() const
 
 void BoardHandler::initializeBoard()
 {
-    m_board= chess::Board(chess::constants::STARTPOS,false); //initializes the board to the starting position
-    tempBoard = chess::Board(chess::constants::STARTPOS,false);
+    m_board = chess::Board(chess::constants::STARTPOS, false); // initializes the board to the starting position
+    tempBoard = chess::Board(chess::constants::STARTPOS, false);
     m_moveIndex = -1;
     m_lastMoveFrom = -1;
     m_lastMoveTo = -1;
@@ -247,7 +275,8 @@ void BoardHandler::initializeBoard()
 
 QString BoardHandler::pieceToString(chess::Piece piece) const
 {
-    if (piece == chess::Piece::NONE) {
+    if (piece == chess::Piece::NONE)
+    {
         return QString(); // Return empty string for no piece
     }
 
@@ -256,13 +285,26 @@ QString BoardHandler::pieceToString(chess::Piece piece) const
     QString typeChar;
 
     // Determine piece type character (P, N, B, R, Q, K)
-    switch (static_cast<std::uint8_t>(piece.type())) {
-    case static_cast<std::uint8_t>(chess::PieceType::PAWN):   typeChar = "P"; break;
-    case static_cast<std::uint8_t>(chess::PieceType::KNIGHT): typeChar = "N"; break;
-    case static_cast<std::uint8_t>(chess::PieceType::BISHOP): typeChar = "B"; break;
-    case static_cast<std::uint8_t>(chess::PieceType::ROOK):   typeChar = "R"; break;
-    case static_cast<std::uint8_t>(chess::PieceType::QUEEN):  typeChar = "Q"; break;
-    case static_cast<std::uint8_t>(chess::PieceType::KING):   typeChar = "K"; break;
+    switch (static_cast<std::uint8_t>(piece.type()))
+    {
+    case static_cast<std::uint8_t>(chess::PieceType::PAWN):
+        typeChar = "P";
+        break;
+    case static_cast<std::uint8_t>(chess::PieceType::KNIGHT):
+        typeChar = "N";
+        break;
+    case static_cast<std::uint8_t>(chess::PieceType::BISHOP):
+        typeChar = "B";
+        break;
+    case static_cast<std::uint8_t>(chess::PieceType::ROOK):
+        typeChar = "R";
+        break;
+    case static_cast<std::uint8_t>(chess::PieceType::QUEEN):
+        typeChar = "Q";
+        break;
+    case static_cast<std::uint8_t>(chess::PieceType::KING):
+        typeChar = "K";
+        break;
     case static_cast<std::uint8_t>(chess::PieceType::NONE):
         // This case should ideally be caught by the initial 'if (piece == chess::Piece::NONE)'
         // but is included for completeness and robustness.
@@ -275,15 +317,17 @@ QVariantList BoardHandler::generatePiecePositions() const
 {
     QVariantList positions;
     // Iterate through all 64 squares (0-63)
-    for (int i = 0; i < 64; ++i) {
-        chess::Square sq(i); // Create a chess::Square from the index
+    for (int i = 0; i < 64; ++i)
+    {
+        chess::Square sq(i);                 // Create a chess::Square from the index
         chess::Piece piece = m_board.at(sq); // Get the piece at the current square
 
-        if (piece != chess::Piece::NONE) { // If there is a piece on this square
+        if (piece != chess::Piece::NONE)
+        { // If there is a piece on this square
             QVariantMap pieceMap;
             int file = i % 8;
             int rank = i / 8;
-            int qmlIndex = (7 - rank) * 8 + file; //maps a8 index 0, a1 index 56, h8 index 7, h1 index 63
+            int qmlIndex = (7 - rank) * 8 + file; // maps a8 index 0, a1 index 56, h8 index 7, h1 index 63
             pieceMap["index"] = qmlIndex;
             pieceMap["piece"] = pieceToString(piece); // Convert to QML-friendly string
             positions.append(pieceMap);
@@ -292,19 +336,21 @@ QVariantList BoardHandler::generatePiecePositions() const
     return positions;
 }
 
-int BoardHandler::squareStringToIndex(const std::string& squareStr) const
+int BoardHandler::squareStringToIndex(const std::string &squareStr) const
 {
-    if (squareStr.length() != 2) return -1;
+    if (squareStr.length() != 2)
+        return -1;
     char fileChar = squareStr[0];
     char rankChar = squareStr[1];
     int file = fileChar - 'a';
     int rank = rankChar - '1';
-    if (file < 0 || file > 7 || rank < 0 || rank > 7) return -1;
+    if (file < 0 || file > 7 || rank < 0 || rank > 7)
+        return -1;
     int qmlIndex = (7 - rank) * 8 + file;
     return qmlIndex;
 }
 
-void BoardHandler::setLastMove(const chess::Move& move)
+void BoardHandler::setLastMove(const chess::Move &move)
 {
     chess::Square fromSq = move.from();
     chess::Square toSq = move.to();

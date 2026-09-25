@@ -20,11 +20,10 @@ class BoardHandler : public QObject
     Q_PROPERTY(int lastMoveFrom READ lastMoveFrom NOTIFY lastMoveChanged)
     Q_PROPERTY(int lastMoveTo READ lastMoveTo NOTIFY lastMoveChanged)
 
-
 public:
     explicit BoardHandler(QObject *parent = nullptr);
-    Q_INVOKABLE void parsePgn(const QString& pgnString);
-    Q_INVOKABLE void setFEN(QString& fen);
+    Q_INVOKABLE void parsePgn(const QString &pgnString);
+    Q_INVOKABLE void setFEN(QString &fen);
     Q_INVOKABLE void getFEN();
     Q_INVOKABLE void prevMove();
     Q_INVOKABLE void nextMove();
@@ -64,19 +63,20 @@ private:
      */
     QVariantList generatePiecePositions() const;
 
-    int squareStringToIndex(const std::string& squareStr) const;
+    int squareStringToIndex(const std::string &squareStr) const;
 
-    void setLastMove(const chess::Move& move);
+    void setLastMove(const chess::Move &move);
 
     QString pieceToString(chess::Piece piece) const;
-    
-    struct MovesObject {
+
+    struct MovesObject
+    {
         QVector<chess::Move> moves;
     } m_movesObject;
 
 signals:
-    void rawMovesListReady(const QStringList& moves);
-    void fenReady(const QString& fen);
+    void rawMovesListReady(const QStringList &moves);
+    void fenReady(const QString &fen);
     void setDefaultPosition();
     void piecePositionsChanged();
     void sgn_startEngine();

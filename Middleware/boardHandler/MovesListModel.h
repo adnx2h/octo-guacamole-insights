@@ -12,7 +12,8 @@ class MovesListModel : public QAbstractListModel
     Q_OBJECT
 
 public:
-    enum MoveRoles {
+    enum MoveRoles
+    {
         MoveNumberRole = Qt::UserRole + 1,
         WhiteMoveRole,
         BlackMoveRole,
@@ -27,10 +28,10 @@ public:
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
     QHash<int, QByteArray> roleNames() const override;
 
-    Q_INVOKABLE void processMoves(const QStringList& rawMoves);
+    Q_INVOKABLE void processMoves(const QStringList &rawMoves);
 
 private:
-    QList<BoardTypes::MoveItem*> m_moveItems;
+    QList<BoardTypes::MoveItem *> m_moveItems;
 };
 
 #endif // MOVESLISTMODEL_H

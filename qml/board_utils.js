@@ -10,11 +10,11 @@ function drawPiece(x, y, piece) {
     }
 }
 
-function setSquareColor(squareIndex){
+function setSquareColor(squareIndex) {
     //Calculate row and column index based on square index
     const rowIndex = Math.floor(squareIndex / 8);
     const columnIndex = squareIndex % 8;
-   // console.debug("index:", squareIndex, "row:", rowIndex, "column:", columnIndex);
+    // console.debug("index:", squareIndex, "row:", rowIndex, "column:", columnIndex);
 
     const isLightSquare = (rowIndex + columnIndex) % 2 === 0;
     if (isLightSquare) {
@@ -24,11 +24,11 @@ function setSquareColor(squareIndex){
     }
 }
 
-function setSquareX(index, squareSize){
+function setSquareX(index, squareSize) {
     return (index % 8) * squareSize; // Calculate x position (column)
 }
 
-function setSquareY(index, squareSize){
+function setSquareY(index, squareSize) {
     return Math.floor(index / 8) * squareSize // Calculate y position (row)
 }
 

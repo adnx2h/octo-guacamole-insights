@@ -9,14 +9,15 @@
 #include <QJsonArray>
 #include <QVariantList>
 
-class ChessComHandler : public QObject {
+class ChessComHandler : public QObject
+{
     Q_OBJECT
 
 public:
     explicit ChessComHandler(QObject *parent = nullptr);
 
     // Entry point: Fetch recent games for a given user
-    Q_INVOKABLE void fetchRecentGames(const QString &username, const QString m_year="0", const QString m_month="0");
+    Q_INVOKABLE void fetchRecentGames(const QString &username, const QString m_year = "0", const QString m_month = "0");
 
 signals:
     void sgn_gamesFetchedSuccess(const QVariantList &gamesList);

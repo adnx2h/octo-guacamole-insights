@@ -12,10 +12,10 @@ function drawPiece(x, y, piece) {
 
 function drawSquare(x, y, color) {
       Rectangle {
-          x: x * squareSize
-          y: y * squareSize
-          width: squareSize
-          height: squareSize
-          color: color
-      }
-  }
+        x: x * squareSize
+        y: y * squareSize
+        width: squareSize
+        height: squareSize
+        color: color
+    }
+}

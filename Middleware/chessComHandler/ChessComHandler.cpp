@@ -5,21 +5,26 @@
 
 ChessComHandler::ChessComHandler(QObject *parent) : QObject(parent) {}
 
-void ChessComHandler::fetchRecentGames(const QString &username, const QString yr, const QString mnt) {
-    if (username.trimmed().isEmpty()) {
+void ChessComHandler::fetchRecentGames(const QString &username, const QString yr, const QString mnt)
+{
+    if (username.trimmed().isEmpty())
+    {
         emit sgn_gamesFetchFailed("Username cannot be empty.");
         return;
     }
-    m_username=username.trimmed();
+    m_username = username.trimmed();
 
     QDate currentDate = QDate::currentDate();
     QString year, month;
 
-    if(yr=="0" && mnt=="0"){
+    if (yr == "0" && mnt == "0")
+    {
         // Fetch games for current year/month from Chess.com API
-         m_year = QString::number(currentDate.year());
-         m_month = QString("%1").arg(currentDate.month(), 2, 10, QChar('0'));
-    }else{
+        m_year = QString::number(currentDate.year());
+        m_month = QString("%1").arg(currentDate.month(), 2, 10, QChar('0'));
+    }
+    else
+    {
         m_year = yr;
         m_month = mnt;
     }
@@ -31,29 +36,32 @@ void ChessComHandler::fetchRecentGames(const QString &username, const QString yr
     request.setHeader(QNetworkRequest::UserAgentHeader, "QtChessAnalysisApp/1.0 (Contact: user@example.com)");
 
     QNetworkReply *reply = m_networkManager.get(request);
-    connect(reply, &QNetworkReply::finished, this, [this, reply]() {
-        onGamesResponseReceived(reply);
-    });
+    connect(reply, &QNetworkReply::finished, this, [this, reply]()
+            { onGamesResponseReceived(reply); });
 }
 
-void ChessComHandler::onGamesResponseReceived(QNetworkReply *reply) {
+void ChessComHandler::onGamesResponseReceived(QNetworkReply *reply)
+{
     reply->deleteLater();
 
-    if (reply->error() != QNetworkReply::NoError) {
+    if (reply->error() != QNetworkReply::NoError)
+    {
         emit sgn_gamesFetchFailed("Network error: " + reply->errorString());
         return;
     }
 
     QByteArray data = reply->readAll();
     QJsonDocument doc = QJsonDocument::fromJson(data);
-    if (!doc.isObject()) {
+    if (!doc.isObject())
+    {
         emit sgn_gamesFetchFailed("Invalid JSON response received.");
         return;
     }
 
     QJsonArray gamesArray = doc.object()["games"].toArray();
 
-    if(gamesArray.empty()){ //no games played in current month
+    if (gamesArray.empty())
+    { // no games played in current month
         // Construct QDate using the current m_year and m_month (using day 1)
         QDate currentDate(m_year.toInt(), m_month.toInt(), 1);
 
@@ -61,7 +69,8 @@ void ChessComHandler::onGamesResponseReceived(QNetworkReply *reply) {
         QDate prevMonthDate = currentDate.addMonths(-1);
 
         // Safeguard: Stop searching if we step back more than 13 months from today
-        if (prevMonthDate < QDate::currentDate().addMonths(-13)) {
+        if (prevMonthDate < QDate::currentDate().addMonths(-13))
+        {
             emit sgn_gamesFetchFailed("No recent games found in the last 13 months.");
             return;
         }
@@ -78,7 +87,8 @@ void ChessComHandler::onGamesResponseReceived(QNetworkReply *reply) {
     QVariantList parsedGames;
 
     // Parse in reverse so newest games appear first
-    for (int i = gamesArray.size() - 1; i >= 0; --i) {
+    for (int i = gamesArray.size() - 1; i >= 0; --i)
+    {
         QJsonObject gameObj = gamesArray[i].toObject();
 
         QVariantMap map;
