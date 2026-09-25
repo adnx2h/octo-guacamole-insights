@@ -31,3 +31,19 @@ function setSquareX(index, squareSize){
 function setSquareY(index, squareSize){
     return Math.floor(index / 8) * squareSize // Calculate y position (row)
 }
+
+function getFileLetter(index) {
+    var col = index % 8;
+    return String.fromCharCode(97 + col); // 0 -> 'a', 1 -> 'b', ..., 7 -> 'h'
+}
+
+function getRankNumber(index) {
+    var row = Math.floor(index / 8);
+    return (8 - row).toString(); // 0 -> '8', 7 -> '1' (assuming 0 top-left standard indexing)
+}
+
+function isDarkSquare(index) {
+    var row = Math.floor(index / 8);
+    var col = index % 8;
+    return (row + col) % 2 !== 0;
+}

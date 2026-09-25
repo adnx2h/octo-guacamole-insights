@@ -59,7 +59,7 @@ Item {
         }
     }
 
-        Component {
+    Component {
         id: squareDelegate
         Rectangle {
             id: squareItem
@@ -74,6 +74,103 @@ Item {
                     return "lightgray";
                 }
                 return BoardUtils.setSquareColor(index);
+            }
+
+            // Helper properties to track orientation
+            readonly property bool isFlipped: chessBoardRoot.rotation === 180
+            readonly property int colIndex: index % 8
+            readonly property int rowIndex: Math.floor(index / 8)
+
+            // --- Rank Numbers (Visual Top-Left of Left Column) ---
+            Text {
+                id: rankText
+                visible: squareItem.isFlipped ? (squareItem.colIndex === 7) : (squareItem.colIndex === 0)
+                text: BoardUtils.getRankNumber(index)
+
+                font.pixelSize: Math.max(9, squareSize * 0.2)
+                font.bold: true
+                color: BoardUtils.isDarkSquare(index) ? "#F0D9B5" : "#B58863"
+                rotation: squareItem.isFlipped ? 180 : 0
+                z: 0
+
+                states: [
+                    State {
+                        name: "normal"
+                        when: !squareItem.isFlipped
+                        AnchorChanges {
+                            target: rankText
+                            anchors.left: squareItem.left
+                            anchors.top: squareItem.top
+                            anchors.right: undefined
+                            anchors.bottom: undefined
+                        }
+                        PropertyChanges {
+                            target: rankText
+                            anchors.margins: Math.max(2, squareSize * 0.05)
+                        }
+                    },
+                    State {
+                        name: "flipped"
+                        when: squareItem.isFlipped
+                        AnchorChanges {
+                            target: rankText
+                            anchors.right: squareItem.right
+                            anchors.bottom: squareItem.bottom
+                            anchors.left: undefined
+                            anchors.top: undefined
+                        }
+                        PropertyChanges {
+                            target: rankText
+                            anchors.margins: Math.max(2, squareSize * 0.05)
+                        }
+                    }
+                ]
+            }
+
+            // --- File Letters (Visual Bottom-Right of Bottom Row) ---
+            Text {
+                id: fileText
+                visible: squareItem.isFlipped ? (squareItem.rowIndex === 0) : (squareItem.rowIndex === 7)
+                text: BoardUtils.getFileLetter(index)
+
+                font.pixelSize: Math.max(9, squareSize * 0.2)
+                font.bold: true
+                color: BoardUtils.isDarkSquare(index) ? "#F0D9B5" : "#B58863"
+                rotation: squareItem.isFlipped ? 180 : 0
+                z: 0
+
+                states: [
+                    State {
+                        name: "normal"
+                        when: !squareItem.isFlipped
+                        AnchorChanges {
+                            target: fileText
+                            anchors.right: squareItem.right
+                            anchors.bottom: squareItem.bottom
+                            anchors.left: undefined
+                            anchors.top: undefined
+                        }
+                        PropertyChanges {
+                            target: fileText
+                            anchors.margins: Math.max(2, squareSize * 0.05)
+                        }
+                    },
+                    State {
+                        name: "flipped"
+                        when: squareItem.isFlipped
+                        AnchorChanges {
+                            target: fileText
+                            anchors.left: squareItem.left
+                            anchors.top: squareItem.top
+                            anchors.right: undefined
+                            anchors.bottom: undefined
+                        }
+                        PropertyChanges {
+                            target: fileText
+                            anchors.margins: Math.max(2, squareSize * 0.05)
+                        }
+                    }
+                ]
             }
 
             MouseArea {
@@ -106,31 +203,33 @@ Item {
         Connections {
             target: id_boardHandler
             function onSgn_isLastMoveForward(isForward) {
-                    var fromIndex = id_boardHandler.lastMoveFrom;
-                    var toIndex = id_boardHandler.lastMoveTo;
+                var fromIndex = id_boardHandler.lastMoveFrom;
+                var toIndex = id_boardHandler.lastMoveTo;
 
-                    if (fromIndex < 0 || toIndex < 0) return;
+                if (fromIndex < 0 || toIndex < 0)
+                    return;
 
-                    var startSq = isForward ? fromIndex : toIndex;
-                    var targetSq = isForward ? toIndex : fromIndex;
-                    animatedPiece.activeTargetSquare = targetSq;
+                var startSq = isForward ? fromIndex : toIndex;
+                var targetSq = isForward ? toIndex : fromIndex;
+                animatedPiece.activeTargetSquare = targetSq;
 
-                    var pieceType = chessBoardRoot.getPieceTypeAt(targetSq);
-                    if (pieceType === "") return;
+                var pieceType = chessBoardRoot.getPieceTypeAt(targetSq);
+                if (pieceType === "")
+                    return;
 
-                    animatedPiece.source = "qrc:/images/" + pieceType + ".png";
+                animatedPiece.source = "qrc:/images/" + pieceType + ".png";
 
-                    animatedPiece.startX = BoardUtils.setSquareX(startSq, squareSize) + animatedPiece.offset;
-                    animatedPiece.startY = BoardUtils.setSquareY(startSq, squareSize) + animatedPiece.offset;
-                    animatedPiece.targetX = BoardUtils.setSquareX(targetSq, squareSize) + animatedPiece.offset;
-                    animatedPiece.targetY = BoardUtils.setSquareY(targetSq, squareSize) + animatedPiece.offset;
+                animatedPiece.startX = BoardUtils.setSquareX(startSq, squareSize) + animatedPiece.offset;
+                animatedPiece.startY = BoardUtils.setSquareY(startSq, squareSize) + animatedPiece.offset;
+                animatedPiece.targetX = BoardUtils.setSquareX(targetSq, squareSize) + animatedPiece.offset;
+                animatedPiece.targetY = BoardUtils.setSquareY(targetSq, squareSize) + animatedPiece.offset;
 
-                    animatedPiece.x = animatedPiece.startX;
-                    animatedPiece.y = animatedPiece.startY;
-                    animatedPiece.visible = true;
+                animatedPiece.x = animatedPiece.startX;
+                animatedPiece.y = animatedPiece.startY;
+                animatedPiece.visible = true;
 
-                    slideAnim.restart();
-                }
+                slideAnim.restart();
+            }
         }
 
         ParallelAnimation {
