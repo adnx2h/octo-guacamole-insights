@@ -24,6 +24,7 @@ public:
     Q_INVOKABLE void stopEngine();
     Q_INVOKABLE void sendCommand(const QString &command);
     Q_INVOKABLE void analyzePosition(const QString &fen, const QString &moves); // New method to start analysis
+    Q_INVOKABLE void cancelAnalysis();
 
     void uciMovesReceived(QStringList);
 
@@ -66,7 +67,7 @@ private:
     bool isAnalyzingPositionComplete;
     QString uciMoves;
     int normalizedEval;
-    bool isEngineReady;
+    bool m_isEngineReady;
     int currentCp = 0;
     int currentMate = 0;
     bool foundCp = false;
@@ -74,5 +75,7 @@ private:
     QQueue<QString> m_uciCumulativeMoves;
     bool m_isStockfishBusy;
     QString m_currentAnalyzingMove;
+    bool m_isCanceling = false;
+    int m_counter = 0;
 };
 #endif

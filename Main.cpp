@@ -38,20 +38,20 @@ int main(int argc, char *argv[])
 
     // 2. Connect the signal from BoardHandler to the slot in MovesListModel
     // When BoardHandler emits rawMovesListReady, MovesListModel::processMoves will be called.
-    QObject::connect(&engine, &QQmlApplicationEngine::objectCreationFailed, &app, []() { QCoreApplication::exit(-1); }, Qt::QueuedConnection);
+    QObject::connect(&engine, &QQmlApplicationEngine::objectCreationFailed, &app, []()
+                     { QCoreApplication::exit(-1); }, Qt::QueuedConnection);
     QObject::connect(boardHandler, &BoardHandler::rawMovesListReady, movesListModel, &MovesListModel::processMoves);
     QObject::connect(boardHandler, &BoardHandler::sgn_startEngine, engineHandler, &EngineHandler::startEngine);
 
-
-    QObject::connect(boardHandler,  &BoardHandler::sgn_uciMovesReady, engineHandler, &EngineHandler::uciMovesReceived);
+    QObject::connect(boardHandler, &BoardHandler::sgn_uciMovesReady, engineHandler, &EngineHandler::uciMovesReceived);
     QObject::connect(engineHandler, &EngineHandler::sgn_newEvaluation, boardHandler, &BoardHandler::newEvaluation);
 
-    //Connect to AI to generate the request
-    QObject::connect(boardHandler,  &BoardHandler::sgn_newUCIMove,                  aiHandler, &AiHandler::newMoveReceived);
-    QObject::connect(boardHandler,  &BoardHandler::sgn_uciMovesReady,               aiHandler, &AiHandler::uciMovesReceived);
-    QObject::connect(engineHandler, &EngineHandler::sgn_newEvaluation,              aiHandler, &AiHandler::newStockfishEvaluationReceived);
-    QObject::connect(engineHandler, &EngineHandler::sgn_stockfishAnalysisComplete,  aiHandler, &AiHandler::stockfishAnalysisComplete);
-    QObject::connect(boardHandler,  &BoardHandler::sgn_newFen,                      aiHandler, &AiHandler::newFenReceived);
+    // Connect to AI to generate the request
+    QObject::connect(boardHandler, &BoardHandler::sgn_newUCIMove, aiHandler, &AiHandler::newMoveReceived);
+    QObject::connect(boardHandler, &BoardHandler::sgn_uciMovesReady, aiHandler, &AiHandler::uciMovesReceived);
+    QObject::connect(engineHandler, &EngineHandler::sgn_newEvaluation, aiHandler, &AiHandler::newStockfishEvaluationReceived);
+    QObject::connect(engineHandler, &EngineHandler::sgn_stockfishAnalysisComplete, aiHandler, &AiHandler::stockfishAnalysisComplete);
+    QObject::connect(boardHandler, &BoardHandler::sgn_newFen, aiHandler, &AiHandler::newFenReceived);
 
     // Register MoveItem and MovesListModel with QML (these lines are already good)
     qmlRegisterType<BoardTypes::MoveItem>("PGN_movesModule", 1, 0, "MoveItem");
@@ -60,7 +60,8 @@ int main(int argc, char *argv[])
     engine.loadFromModule("Chess", "Main"); // Load the root QML file
 
     // Check if QML loaded successfully
-    if (engine.rootObjects().isEmpty()) {
+    if (engine.rootObjects().isEmpty())
+    {
         qCritical("Failed to load QML module: Chess.Main");
         return -1;
     }

@@ -70,6 +70,10 @@ Item {
 
                 onClicked: {
                     console.log("Back Button Clicked");
+                    id_AnalysisScreen.resetScreen();
+                    id_engineHandler.cancelAnalysis();
+                    id_boardHandler.resetAnalysis();
+                    id_aiHandler.initializeAI();
                     sgnBtnBackClicked();
                 }
             }
@@ -482,5 +486,20 @@ Item {
                 id_AnalysisScreen.analysisState = "ready";
             }
         }
+    }
+    function resetScreen() {
+        id_TextArea_explanation.text = "";
+
+        // Check if the model has a clear function before calling
+        if (typeof movesModel !== "undefined" && typeof movesModel.clear === "function") {
+            movesModel.clear();
+        } else if (typeof pgn_movesModel !== "undefined" && typeof pgn_movesModel.clear === "function") {
+            pgn_movesModel.clear();
+        }
+
+        currentMoveIndex = 0;
+        analysisState = "ready";
+        id_btn_Next.enabled = false;
+        id_btn_Previous.enabled = false;
     }
 }

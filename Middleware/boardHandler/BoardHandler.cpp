@@ -85,9 +85,10 @@ QString BoardHandler::cleanPgnForParsing(const QString &rawPgn)
 // Function to parse a PGN chess game
 void BoardHandler::parsePgn(const QString &pgnString)
 {
+    // Clear out all stale data from previous analyses before parsing
+    resetAnalysis();
 
     QString cleanedString = cleanPgnForParsing(pgnString);
-
     QStringList lines = cleanedString.split('\n');
     QString moveText;
     QString result; // To store the game result
@@ -96,6 +97,7 @@ void BoardHandler::parsePgn(const QString &pgnString)
 
     // Initialize the board to the starting position
     initializeBoard();
+    m_uciMovesList.clear();
 
     emit sgn_startEngine();
 
@@ -161,7 +163,7 @@ void BoardHandler::parsePgn(const QString &pgnString)
         // emit resultReady(pgn_data.result);
         emit setDefaultPosition();
         // emit sgn_startEngine();
-        emit sgn_uciMovesReady(uciMovesList);
+        emit sgn_uciMovesReady(m_uciMovesList);
     }
     else
     {
@@ -250,7 +252,7 @@ void BoardHandler::toUciMove(chess::Move move)
     std::string toStr = static_cast<std::string>(to);
 
     QString uciMove = QString::fromStdString(fromStr + toStr);
-    uciMovesList.append(uciMove);
+    m_uciMovesList.append(uciMove);
     emit sgn_newUCIMove(uciMove);
 }
 
@@ -359,4 +361,16 @@ void BoardHandler::setLastMove(const chess::Move &move)
     m_lastMoveFrom = squareStringToIndex(fromStr);
     m_lastMoveTo = squareStringToIndex(toStr);
     emit lastMoveChanged();
+}
+
+void BoardHandler::resetAnalysis()
+{
+    m_uciMovesList.clear();
+    m_movesEvaluations.clear();
+    m_movesObject.moves.clear();
+    m_moveIndex = -1;
+    m_lastMoveFrom = -1;
+    m_lastMoveTo = -1;
+
+    initializeBoard(); // Resets board positions and emits piecePositionsChanged
 }

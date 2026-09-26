@@ -28,7 +28,7 @@ EngineHandler::EngineHandler(QObject *parent) : QObject(parent)
             this, &EngineHandler::processNextQueuedAnalysis);
 
     isAnalyzingPositionComplete = false;
-    isEngineReady = false;
+    m_isEngineReady = false;
     m_isStockfishBusy = false;
 }
 
@@ -148,6 +148,10 @@ void EngineHandler::analyzePosition(const QString &fen, const QString &moves)
 void EngineHandler::uciMovesReceived(QStringList uciList)
 {
     QString compoundUciMove;
+
+    cancelAnalysis();
+    m_counter = 0; // <-- Reset counter for new analysis batch
+
     for (QString uci : uciList)
     {
         if (compoundUciMove != "")
@@ -166,7 +170,7 @@ void EngineHandler::uciMovesReceived(QStringList uciList)
 
 void EngineHandler::processNextQueuedAnalysis()
 {
-    if (isEngineReady && !m_uciCumulativeMoves.isEmpty() && !m_isStockfishBusy)
+    if (m_isEngineReady && !m_uciCumulativeMoves.isEmpty() && !m_isStockfishBusy)
     {
         // Store current move string so readStandardOutput can safely calculate side to move
         m_currentAnalyzingMove = m_uciCumulativeMoves.dequeue();
@@ -191,7 +195,6 @@ void EngineHandler::readStandardOutput()
     // Append to buffer for multi-line parsing if needed, or process line by line
     // For evaluation, we often get multiple 'info' lines, so processing each line is good.
     QStringList lines = output.split('\n', Qt::SkipEmptyParts);
-    static int counter = 0;
 
     for (const QString &line : lines)
     {
@@ -235,12 +238,23 @@ void EngineHandler::readStandardOutput()
         }
         else if (line.contains("readyok"))
         {
-            isEngineReady = true;
+            m_isEngineReady = true;
             emit sgn_engineReady();
         }
         else if (line.startsWith("bestmove"))
         {
-            if (isEngineReady)
+            // If we canceled a previous move, discard its trailing 'bestmove' signal
+            if (m_isCanceling)
+            {
+                m_isCanceling = false;
+                foundCp = false;
+                foundMate = false;
+                currentCp = 0;
+                currentMate = 0;
+                qDebug() << "Discarded trailing bestmove from canceled analysis.";
+                continue;
+            }
+            if (m_isEngineReady)
             {
 
                 // If Stockfish returns "bestmove (none)", the position is terminal (Checkmate or Stalemate).
@@ -259,8 +273,8 @@ void EngineHandler::readStandardOutput()
                 if (foundCp || foundMate)
                 {
                     normalizedEval = normalizeEvaluation(currentCp, currentMate);
-                    qDebug() << counter << "cp:" << currentCp << "mate:" << currentMate << "normal:" << normalizedEval;
-                    counter++;
+                    qDebug() << m_counter << "cp:" << currentCp << "mate:" << currentMate << "normal:" << normalizedEval;
+                    m_counter++;
 
                     emit sgn_newEvaluation(normalizedEval);
 
@@ -274,7 +288,7 @@ void EngineHandler::readStandardOutput()
                 }
             }
             // emit evaluationChanged(normalizedEval);
-            // You might emit a signal here for the best move to update your board
+            // emit a signal here for the best move to update the board
         }
     }
 }
@@ -321,4 +335,32 @@ int EngineHandler::normalizeEvaluation(int cp, int mate)
     int normalizedValue = static_cast<int>((winningFraction - 0.5) * 200.0);
 
     return qBound(-100, normalizedValue, 100);
+}
+
+void EngineHandler::cancelAnalysis()
+{
+    qDebug() << "Canceling Stockfish analysis.";
+
+    // 1. Mark that we are canceling and expecting an ignored 'bestmove'
+    if (m_isStockfishBusy)
+    {
+        m_isCanceling = true;
+    }
+
+    // 2. Clear queued pending moves
+    m_uciCumulativeMoves.clear();
+
+    // 3. Reset busy and evaluation state flags
+    m_isStockfishBusy = false;
+    foundCp = false;
+    foundMate = false;
+    currentCp = 0;
+    currentMate = 0;
+
+    // 4. Stop Stockfish if running
+    if (stockfishProcess && stockfishProcess->state() == QProcess::Running)
+    {
+        sendCommand("stop");
+    }
+    qDebug() << "Canceled Stockfish analysis.";
 }

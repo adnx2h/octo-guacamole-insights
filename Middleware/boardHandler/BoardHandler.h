@@ -28,6 +28,7 @@ public:
     Q_INVOKABLE void prevMove();
     Q_INVOKABLE void nextMove();
     Q_INVOKABLE int getCurrentMoveIndex();
+    Q_INVOKABLE void resetAnalysis();
 
     QString cleanPgnForParsing(const QString &rawPgn);
 
@@ -47,7 +48,7 @@ public:
     void newEvaluation(int);
 
 private:
-    QStringList uciMovesList;
+    QStringList m_uciMovesList;
     QList<int> m_movesEvaluations;
     int m_moveIndex;
     int m_lastMoveFrom;
