@@ -389,6 +389,8 @@ void BoardHandler::findUserColor(const QString &pgnHeader)
     const QString whiteUser = whiteMatch.hasMatch() ? whiteMatch.captured(1) : QString();
     const QString blackUser = blackMatch.hasMatch() ? blackMatch.captured(1) : QString();
 
+    emit sgn_playersFound(whiteUser, blackUser);
+
     // Exact case-sensitive match
     if (m_user == whiteUser) {
         emit sgn_userAndColor(m_user, QStringLiteral("White"));

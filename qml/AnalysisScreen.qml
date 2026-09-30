@@ -13,6 +13,9 @@ Item {
     property int currentMoveIndex: 0
     property bool explanationLoading: false
 
+    property string whitePlayer: "White Player"
+    property string blackPlayer: "Black Player"
+
     // Analysis State Tracking
     property string analysisState: "ready" // "stockfish", "ai", or "ready"
     property string statusMessage: {
@@ -109,6 +112,22 @@ Item {
                         horizontalAlignment: Text.AlignHCenter
                         verticalAlignment: Text.AlignVCenter
                         elide: Text.ElideRight
+
+                        // Pulse animation when busy
+                            SequentialAnimation on opacity {
+                                running: id_AnalysisScreen.analysisState !== "ready"
+                                loops: Animation.Infinite
+
+                                NumberAnimation { to: 0.3; duration: 1000; easing.type: Easing.InOutQuad }
+                                NumberAnimation { to: 1.0; duration: 1000; easing.type: Easing.InOutQuad }
+                            }
+
+                            // Reset opacity back to 1.0 when ready
+                            onOpacityChanged: {
+                                if (id_AnalysisScreen.analysisState === "ready") {
+                                    opacity = 1.0
+                                }
+                            }
                     }
                 }
             }
@@ -152,11 +171,43 @@ Item {
             }
         }
 
-        // Board Row
+        // Top Player Badge
+        Rectangle {
+            id: id_topPlayerBadge
+            anchors.top: id_topBarContainer.bottom
+            anchors.topMargin: 4
+            anchors.left: parent.left
+            anchors.right: parent.right
+            height: 20
+            color: "#f1f3f5"
+            radius: 4
+
+            RowLayout {
+                anchors.fill: parent
+                anchors.leftMargin: 8
+                anchors.rightMargin: 8
+
+                Rectangle {
+                    width: 10; height: 10; radius: 2
+                    color: id_analysisChessBoard.state === "rotated" ? "#ffffff" : "#212121"
+                    border.color: "#757575"
+                }
+
+                Text {
+                    text: id_analysisChessBoard.state === "rotated" ? id_AnalysisScreen.whitePlayer : id_AnalysisScreen.blackPlayer
+                    font.pixelSize: 13
+                    font.bold: true
+                    color: "#212121"
+                    Layout.fillWidth: true
+                    elide: Text.ElideRight
+                }
+            }
+        }
+
         Row {
             id: boardRow
-            anchors.top: id_topBarContainer.bottom
-            anchors.topMargin: 8
+            anchors.top: id_topPlayerBadge.bottom
+            anchors.topMargin: 4
             anchors.left: parent.left
             anchors.right: parent.right
             height: boardSize
@@ -173,11 +224,10 @@ Item {
 
                 property real whiteAdvantage: 0.5
 
-                // Automatically animate whiteAdvantage whenever it changes
                 Behavior on whiteAdvantage {
                     NumberAnimation {
-                        duration: 500 // Duration in milliseconds
-                        easing.type: Easing.OutCubic // Smooth deceleration
+                        duration: 500
+                        easing.type: Easing.OutCubic
                     }
                 }
 
@@ -208,10 +258,43 @@ Item {
             }
         }
 
+        // Bottom Player Badge
+        Rectangle {
+            id: id_bottomPlayerBadge
+            anchors.top: boardRow.bottom
+            anchors.topMargin: 4
+            anchors.left: parent.left
+            anchors.right: parent.right
+            height: 20
+            color: "#f1f3f5"
+            radius: 4
+
+            RowLayout {
+                anchors.fill: parent
+                anchors.leftMargin: 8
+                anchors.rightMargin: 8
+
+                Rectangle {
+                    width: 10; height: 10; radius: 2
+                    color: id_analysisChessBoard.state === "rotated" ? "#212121" : "#ffffff"
+                    border.color: "#757575"
+                }
+
+                Text {
+                    text: id_analysisChessBoard.state === "rotated" ? id_AnalysisScreen.blackPlayer : id_AnalysisScreen.whitePlayer
+                    font.pixelSize: 13
+                    font.bold: true
+                    color: "#212121"
+                    Layout.fillWidth: true
+                    elide: Text.ElideRight
+                }
+            }
+        }
+
         // Movements and Comments Section
         Row {
             id: id_movements_comments_buttons_rowL
-            anchors.top: boardRow.bottom
+            anchors.top: id_bottomPlayerBadge.bottom
             anchors.topMargin: 8
             anchors.left: parent.left
             anchors.right: parent.right
@@ -347,7 +430,7 @@ Item {
                         width: parent.width
                         height: implicitHeight
                         readOnly: false
-                        font.pixelSize: 18
+                        font.pixelSize: 16
                         wrapMode: Text.WordWrap
                         background: Rectangle {
                             color: "grey"
@@ -443,6 +526,11 @@ Item {
         //Stockfish start analysis
         function onSgn_uciMovesReady() {
             id_AnalysisScreen.analysisState = "stockfish";
+        }
+        // Add signal handler to update properties
+        function onSgn_playersFound(white, black) {
+            id_AnalysisScreen.whitePlayer = white;
+            id_AnalysisScreen.blackPlayer = black;
         }
     }
     // Connections for AI explanation

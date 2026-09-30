@@ -92,6 +92,7 @@ signals:
     void lastMoveChanged();
     void sgn_isLastMoveForward(bool);
     void sgn_userAndColor(const QString &username, const QString &color);
+    void sgn_playersFound(const QString &white, const QString &black);
 };
 
 #endif // BOARDHANDLER_H
