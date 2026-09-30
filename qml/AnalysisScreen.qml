@@ -220,7 +220,7 @@ Item {
 
             Rectangle {
                 id: id_movementsContainer
-                width: 85
+                width: 90
                 height: parent.height
 
                 MovesListModel {
@@ -259,7 +259,7 @@ Item {
                                     text: model.moveNumber + "."
                                     verticalAlignment: Text.AlignVCenter
                                     color: "#757575"
-                                    font.pixelSize: 13
+                                    font.pixelSize: 11
                                     font.bold: true
                                 }
 
@@ -278,7 +278,7 @@ Item {
                                         text: model.whiteMove || ""
                                         verticalAlignment: Text.AlignVCenter
                                         color: (id_AnalysisScreen.currentMoveIndex === index * 2) ? "#ffffff" : "#212121"
-                                        font.pixelSize: 14
+                                        font.pixelSize: 13
                                         font.bold: (id_AnalysisScreen.currentMoveIndex === index * 2)
                                     }
 
@@ -309,7 +309,7 @@ Item {
                                         text: model.blackMove || ""
                                         verticalAlignment: Text.AlignVCenter
                                         color: (id_AnalysisScreen.currentMoveIndex === index * 2 + 1) ? "#ffffff" : "#212121"
-                                        font.pixelSize: 14
+                                        font.pixelSize: 13
                                         font.bold: (id_AnalysisScreen.currentMoveIndex === index * 2 + 1)
                                     }
 

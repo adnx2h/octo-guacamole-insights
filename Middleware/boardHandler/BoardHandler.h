@@ -29,6 +29,7 @@ public:
     Q_INVOKABLE void nextMove();
     Q_INVOKABLE int getCurrentMoveIndex();
     Q_INVOKABLE void resetAnalysis();
+    Q_INVOKABLE void setUser(const QString &user);
 
     QString cleanPgnForParsing(const QString &rawPgn);
 
@@ -74,6 +75,8 @@ private:
     {
         QVector<chess::Move> moves;
     } m_movesObject;
+    QString m_user;
+    void findUserColor(const QString &pgnHeader);
 
 signals:
     void rawMovesListReady(const QStringList &moves);
@@ -88,6 +91,7 @@ signals:
     void sgn_newFen(QString fen);
     void lastMoveChanged();
     void sgn_isLastMoveForward(bool);
+    void sgn_userAndColor(const QString &username, const QString &color);
 };
 
 #endif // BOARDHANDLER_H

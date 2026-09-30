@@ -41,7 +41,7 @@ public:
 
     // Getter for the gameExplanations property
     QList<GameExplanation> gameExplanations() const { return m_gameExplanations; }
-
+    void setUser(const QString &username, const QString &color);
 private:
     QNetworkAccessManager *networkManager; // For AI API calls
     QList<int> m_stockfishEvaluationsList;
@@ -52,6 +52,7 @@ private:
     QString createGameJsonQuery();
 
     QList<GameExplanation> m_gameExplanations; // Stores (MoveIndex, Explanation)
+    QString m_userColor, m_user;
 
 signals:
     // Signal for AI explanation

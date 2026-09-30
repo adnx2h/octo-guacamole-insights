@@ -47,6 +47,9 @@ bool BoardHandler::isValidPGN(const QString &pgn)
 
 QString BoardHandler::cleanPgnForParsing(const QString &rawPgn)
 {
+    //find user and color
+    findUserColor(rawPgn);
+
     // Clean from chess.com format
     //  1. Separate Headers from Moves (split at the first double newline)
     int moveStartIdx = rawPgn.indexOf("\n\n");
@@ -373,4 +376,32 @@ void BoardHandler::resetAnalysis()
     m_lastMoveTo = -1;
 
     initializeBoard(); // Resets board positions and emits piecePositionsChanged
+}
+
+void BoardHandler::findUserColor(const QString &pgnHeader)
+{
+    static const QRegularExpression whiteRegex(QStringLiteral("\\[White\\s+\"([^\"]+)\"\\]"));
+    static const QRegularExpression blackRegex(QStringLiteral("\\[Black\\s+\"([^\"]+)\"\\]"));
+
+    const QRegularExpressionMatch whiteMatch = whiteRegex.match(pgnHeader);
+    const QRegularExpressionMatch blackMatch = blackRegex.match(pgnHeader);
+
+    const QString whiteUser = whiteMatch.hasMatch() ? whiteMatch.captured(1) : QString();
+    const QString blackUser = blackMatch.hasMatch() ? blackMatch.captured(1) : QString();
+
+    // Exact case-sensitive match
+    if (m_user == whiteUser) {
+        emit sgn_userAndColor(m_user, QStringLiteral("White"));
+    }
+    else if (m_user == blackUser) {
+        emit sgn_userAndColor(m_user, QStringLiteral("Black"));
+    }
+    else {
+        // Fallback: If analyzing a third-party game where m_user doesn't match
+        emit sgn_userAndColor(whiteUser, QStringLiteral("White"));
+    }
+}
+
+void BoardHandler::setUser(const QString &user){
+    m_user = user;
 }

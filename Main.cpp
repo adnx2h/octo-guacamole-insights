@@ -52,6 +52,7 @@ int main(int argc, char *argv[])
     QObject::connect(engineHandler, &EngineHandler::sgn_newEvaluation, aiHandler, &AiHandler::newStockfishEvaluationReceived);
     QObject::connect(engineHandler, &EngineHandler::sgn_stockfishAnalysisComplete, aiHandler, &AiHandler::stockfishAnalysisComplete);
     QObject::connect(boardHandler, &BoardHandler::sgn_newFen, aiHandler, &AiHandler::newFenReceived);
+    QObject::connect(boardHandler, &BoardHandler::sgn_userAndColor, aiHandler, &AiHandler::setUser);
 
     // Register MoveItem and MovesListModel with QML (these lines are already good)
     qmlRegisterType<BoardTypes::MoveItem>("PGN_movesModule", 1, 0, "MoveItem");

@@ -5,6 +5,7 @@
 #include <QJsonArray>
 #include <QFile>
 #include <QTextStream>
+#include "Personas.h"
 
 AiHandler::AiHandler(QObject *parent)
     : QObject{parent}
@@ -296,8 +297,13 @@ void AiHandler::stockfishAnalysisComplete(){
     }
 }
 
-QString AiHandler::createGameJsonQuery(){
+QString AiHandler::createGameJsonQuery()
+{
     int moveCount = m_uciMoves.size();
+
+    // 1. Determine the user's color (e.g., "White" or "Black").
+    QString userColor = m_userColor.isEmpty() ? "White" : m_userColor; 
+    QString opponentColor = (userColor == "White") ? "Black" : "White";
 
     QJsonArray movesArray;
     // ... (Iterate and Build the JSON Array 'movesArray')
@@ -307,95 +313,30 @@ QString AiHandler::createGameJsonQuery(){
         QJsonObject moveObject;
         moveObject["move_number"] = i + 1;
         moveObject["color"] = (i % 2 == 0) ? "White" : "Black";
-        // moveObject["san_move"] = m_movesList.at(i);
         moveObject["uci_move"] = m_uciMoves.at(i);
         moveObject["fen_before_move"] = m_fenList.at(i);
 
         int rawEval = m_stockfishEvaluationsList.at(i);
-
-        // Convert integer evaluation to the required API string format (e.g., "+0.50" or "#5")
-        // QString apiEvalString; this is not ok
-        // if (rawEval > 10000) {
-        //     apiEvalString = QString("#%1").arg(rawEval / 10000);
-        // } else if (rawEval < -10000) {
-        //     apiEvalString = QString("-#%1").arg(qAbs(rawEval / 10000));
-        // } else {
-        //     apiEvalString = QString("%1%2.%3").arg(rawEval >= 0 ? "+" : "").arg(rawEval / 100).arg(qAbs(rawEval % 100), 2, 10, QChar('0'));
-        // }
-
-        // Send both the raw value and the formatted string the API needs
         moveObject["evaluation_cp"] = rawEval;
-        // moveObject["evaluation_api_format"] = apiEvalString; // Key for the API
 
         movesArray.append(moveObject);
     }
 
-    // --- THIS IS WHERE TO SET THE PROMPT TEXT ---
-    const QString promptText =
-        "You are a world-class Chess Commentator and Grandmaster-level Analyst. Your task is to provide engaging, clear, and insightful natural language commentary for a sequence of moves."
-        "\n\n**Instructions:**"
-        "\n1.  **Strictly adhere to the provided Output Format.** Do not add extra introductory or concluding remarks outside of the main analysis section."
-        "\n2.  Analyze each move in the provided list."
-        "\n3.  Use the move's **Evaluation Change** and the context of the **Current FEN** to generate the commentary."
-        "\n    * **Good Move (Evaluation improves for the moving side, or maintains a large advantage):** Explain the plan, the key strategic/tactical idea, or why the move is superior to other options."
-        "\n    * **Inaccuracy/Mistake (Evaluation worsens for the moving side):** Identify the drawback of the move, what the player missed, and what the superior alternative was (if a clear one exists)."
-        "\n    * **Normal/Forcing Move:** Briefly summarize the move's purpose and its positional impact."
-        "\n4.  The output should be a single, flowing paragraph of commentary for the sequence of moves, using **Standard Algebraic Notation (SAN)** for the moves in your commentary."
-        "\n\n**Input Data Format:**"
-        "\n* **Starting FEN:** The position *before* the first move in the list is played."
-        "\n* **Move List:** A sequential list of moves, each with its engine evaluation after the move. (Note: Use the FEN and Evaluation data provided in the JSON 'moves' array)."
-       // "\n* **Output Format:** A single JSON block with the following structure: \n```json\n{\n  \"analysis_commentary\": [\n    {\n      \"move_number\": 1,\n      \"color\": \"White\",\n      \"explanation\": \"...\" \n    },\n    {\n      \"move_number\": 2,\n      \"color\": \"Black\",\n      \"explanation\": \"...\" \n    }\n    // ... and so on\n  ]\n}\n```"
-                               "\n* **Output Format:** A single JSON block with the following structure: \n```json\n{\n  \"overall_commentary\": \"[YOUR OVERALL SUMMARY HERE]\",\n  \"analysis_commentary\": [\n    {\n      \"move_number\": 1,\n      \"color\": \"White\",\n      \"explanation\": \"...\" \n    },\n    {\n      \"move_number\": 2,\n      \"color\": \"Black\",\n      \"explanation\": \"...\" \n    }\n    // ... and so on\n  ]\n}\n```";
-        //"\n* **Output Format:** A single JSON block with the following structure: \n```json\n{\n \"analysis_commentary\": \"[YOUR COMPLETE PARAGRAPH OF COMMENTARY HERE]\"\n}\n```";
-    const QString promptText2 =
-        "You are a friendly, encouraging chess buddy explaining a game to a friend who plays around 700-1000 ELO. Your job is to make move explanations feel like natural, informal advice from a pal hanging out at the board."
-        "\n\n**Instructions:**"
-        "\n1.  **Strictly adhere to the provided Output Format.** Return ONLY the requested JSON structure without any conversational wrappers outside the JSON."
-        "\n2.  **Talk like a human friend:**"
-        "\n    * NEVER start explanations with robotic setups like 'Move X', 'White plays...', 'Black plays...', or 'This move is...'."
-        "\n    * Jump straight into the action, key idea, or casual reaction (e.g., 'Nice idea grabbing space on the queenside!', 'Oops, this leaves your bishop hanging!', 'Solid development step.')."
-        "\n    * Keep each move's explanation very short (1-2 friendly sentences max)."
-        "\n3.  **ELO-Specific Focus (700-1000 ELO):**"
-        "\n    * Avoid deep engine variations or line calculations."
-        "\n    * Focus strictly on simple, clear concepts: hanging pieces, undefended tactics, basic pins, king safety, center control, and opening development."
-        "\n    * Rely strictly on the provided engine evaluation data to judge move quality; do not invent tactics that contradict the engine data."
-        "\n4.  **Tone & Guidance:**"
-        "\n    * **Good / Best Move:** High-five the player! Praise the core idea in casual language."
-        "\n    * **Inaccuracy / Mistake / Blunder:** Keep it warm and encouraging. Plainly state what was left open or missed, and gently suggest what the engine liked better."
-        "\n    * **Normal Move:** Keep it light and punchy."
-        "\n5.  Use **Standard Algebraic Notation (SAN)** when mentioning pieces or squares in your commentary."
-        "\n\n**Input Data Format:**"
-        "\n* **Starting FEN:** The position *before* the first move in the list is played."
-        "\n* **Move List:** A sequential list of moves, each with its engine evaluation, best move alternative, and FEN after the move. (Note: Use the FEN and Evaluation data provided in the JSON 'moves' array)."
-        "\n* **Output Format:** A single JSON block with the following structure: \n```json\n{\n  \"overall_commentary\": \"[YOUR OVERALL SUMMARY HERE]\",\n  \"analysis_commentary\": [\n    {\n      \"move_number\": 1,\n      \"color\": \"White\",\n      \"explanation\": \"...\" \n    },\n    {\n      \"move_number\": 2,\n      \"color\": \"Black\",\n      \"explanation\": \"...\" \n    }\n    // ... and so on\n  ]\n}\n```";
-    qDebug()<<promptText2;
+    // 2. Format the persona prompt with user/opponent colors
+    QString formattedPersona = PERSONA_TRASH_TALKER_ROLE.arg(m_userColor, m_user);
+    qDebug() << formattedPersona;
+    QString geminiPrompt = formattedPersona + "\n\n" + JSON_OUTPUT_FORMAT;
 
     // 3. Create the Final JSON Document
     QJsonObject queryRoot;
     queryRoot["analysis_request_type"] = "commentary";
-    queryRoot["prompt_instructions"] = promptText2;
-    queryRoot["starting_fen"] = m_fenList.first(); // Use the first FEN as the starting position for the prompt
+    queryRoot["user_played_as"] = userColor; // Help the AI know who the user is
+    queryRoot["prompt_instructions"] = geminiPrompt;
+    queryRoot["starting_fen"] = m_fenList.first();
     queryRoot["total_moves"] = moveCount;
     queryRoot["moves"] = movesArray;
 
     QJsonDocument doc(queryRoot);
-    qDebug()<<doc.toJson(QJsonDocument::Compact);
-
-
-
-    QByteArray jsonBytes = doc.toJson(QJsonDocument::Compact);
-    QFile file("analysis_query.json");
-    if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        QTextStream out(&file);
-        out << QString::fromUtf8(jsonBytes);
-        file.close();
-        qDebug() << "Full JSON written to analysis_query.json";
-    }
-
-
-
-
-
     return doc.toJson(QJsonDocument::Compact);
 }
 
@@ -419,6 +360,12 @@ void AiHandler::initializeAI(){
     m_isGeminiBusy = false;
     m_uciMoves.clear();
 }
+
+void AiHandler::setUser(const QString &username, const QString &color){
+    m_user = username;
+    m_userColor = color;
+}
+
 
 //this function will be uysed later
 // void AiHandler::explainNextMove(){

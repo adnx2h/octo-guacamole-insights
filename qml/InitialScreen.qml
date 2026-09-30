@@ -245,6 +245,7 @@ Item {
                 var pgnToAnalyze = "";
 
                 if (rbChessCom.checked) {
+                    id_boardHandler.setUser(tfUsername.text);
                     // Pull selected game PGN or fallback to active property
                     if (lvChessComGames.currentIndex >= 0 && listModelGames.count > 0) {
                         pgnToAnalyze = listModelGames.get(lvChessComGames.currentIndex).pgnData;

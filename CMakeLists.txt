@@ -32,6 +32,7 @@ qt_add_qml_module(appChess
     SOURCES Middleware/aiHandler/AiHandler.h Middleware/aiHandler/AiHandler.cpp
     SOURCES Middleware/externalLibraries/chess.hpp
     SOURCES Middleware/chessComHandler/ChessComHandler.h Middleware/chessComHandler/ChessComHandler.cpp
+    SOURCES Middleware/aiHandler/Personas.h
 )
 
 if(ANDROID)
