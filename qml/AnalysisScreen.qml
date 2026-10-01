@@ -114,20 +114,28 @@ Item {
                         elide: Text.ElideRight
 
                         // Pulse animation when busy
-                            SequentialAnimation on opacity {
-                                running: id_AnalysisScreen.analysisState !== "ready"
-                                loops: Animation.Infinite
+                        SequentialAnimation on opacity {
+                            running: id_AnalysisScreen.analysisState !== "ready"
+                            loops: Animation.Infinite
 
-                                NumberAnimation { to: 0.3; duration: 1000; easing.type: Easing.InOutQuad }
-                                NumberAnimation { to: 1.0; duration: 1000; easing.type: Easing.InOutQuad }
+                            NumberAnimation {
+                                to: 0.3
+                                duration: 1000
+                                easing.type: Easing.InOutQuad
                             }
+                            NumberAnimation {
+                                to: 1.0
+                                duration: 1000
+                                easing.type: Easing.InOutQuad
+                            }
+                        }
 
-                            // Reset opacity back to 1.0 when ready
-                            onOpacityChanged: {
-                                if (id_AnalysisScreen.analysisState === "ready") {
-                                    opacity = 1.0
-                                }
+                        // Reset opacity back to 1.0 when ready
+                        onOpacityChanged: {
+                            if (id_AnalysisScreen.analysisState === "ready") {
+                                opacity = 1.0;
                             }
+                        }
                     }
                 }
             }
@@ -188,7 +196,9 @@ Item {
                 anchors.rightMargin: 8
 
                 Rectangle {
-                    width: 10; height: 10; radius: 2
+                    width: 10
+                    height: 10
+                    radius: 2
                     color: id_analysisChessBoard.state === "rotated" ? "#ffffff" : "#212121"
                     border.color: "#757575"
                 }
@@ -275,7 +285,9 @@ Item {
                 anchors.rightMargin: 8
 
                 Rectangle {
-                    width: 10; height: 10; radius: 2
+                    width: 10
+                    height: 10
+                    radius: 2
                     color: id_analysisChessBoard.state === "rotated" ? "#212121" : "#ffffff"
                     border.color: "#757575"
                 }
@@ -317,6 +329,24 @@ Item {
                     visible: true
                     clip: true
                     spacing: 2
+
+                    // Automatically update the current index based on the active move index
+                    currentIndex: Math.floor(id_AnalysisScreen.currentMoveIndex / 2)
+
+                    // Highlight behavior & smooth positioning
+                    highlightMoveDuration: 150
+
+                    // Keep the current item smoothly centered or brought into view when index changes
+                    onCurrentIndexChanged: {
+                        if (currentIndex >= 0 && currentIndex < count) {
+                            // PositionViewAtIndex Modes:
+                            // ListView.Beginning - scrolls so item is at the top
+                            // ListView.End       - scrolls so item is at the bottom
+                            // ListView.Center    - scrolls so item is centered in the view
+                            // ListView.Contain   - scrolls only if item is out of bounds
+                            positionViewAtIndex(currentIndex, ListView.Center);
+                        }
+                    }
 
                     delegate: Item {
                         width: ListView.view.width
@@ -472,6 +502,11 @@ Item {
                             console.log("Previous move");
                             id_boardHandler.prevMove();
                             currentMoveIndex = id_boardHandler.getCurrentMoveIndex();
+
+                            // Calculate row index and scroll
+                            var rowIndex = Math.floor(currentMoveIndex / 2);
+                            id_listView_movements.positionViewAtIndex(rowIndex, ListView.Contain);
+
                             id_TextArea_explanation.text = id_aiHandler.gameExplanations[id_boardHandler.getCurrentMoveIndex()]?.explanation || "No explanation available.";
                         }
                     }
@@ -502,6 +537,11 @@ Item {
                             console.log("Next move");
                             id_boardHandler.nextMove();
                             currentMoveIndex = id_boardHandler.getCurrentMoveIndex();
+
+                            // Calculate row index and scroll
+                            var rowIndex = Math.floor(currentMoveIndex / 2);
+                            id_listView_movements.positionViewAtIndex(rowIndex, ListView.Contain);
+
                             id_TextArea_explanation.text = id_aiHandler.gameExplanations[id_boardHandler.getCurrentMoveIndex()]?.explanation || "No explanation available.";
                         }
                     }
