@@ -14,6 +14,10 @@ Item {
     // Helper property to store the PGN string to analyze
     property string selectedPgn: ""
 
+    // Selected Persona Index (0: Friendly Buddy, 1: Strict GM, 2: Trash-Talker)
+    property int selectedPersonaIndex: 0
+    property string selectedPersonaLabel: "🤝 Friendly Buddy"
+
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: 15
@@ -24,7 +28,7 @@ Item {
         // ==========================================
         RowLayout {
             Layout.fillWidth: true
-            spacing: 20
+            spacing: 10
 
             RadioButton {
                 id: rbChessCom
@@ -35,6 +39,32 @@ Item {
             RadioButton {
                 id: rbPgnPaste
                 text: qsTr("Paste PGN")
+            }
+
+            Item { Layout.fillWidth: true } // Spacer to push settings button to top right
+
+            // Top-Right Settings Button
+            Button {
+                id: idBtn_PersonaSettings
+                Layout.preferredWidth: 36
+                Layout.preferredHeight: 36
+
+                background: Rectangle {
+                    color: idBtn_PersonaSettings.down ? "#E0E0E0" : (idBtn_PersonaSettings.hovered ? "#F5F5F5" : "#FFFFFF")
+                    border.color: idBtn_PersonaSettings.hovered ? "#1976D2" : "#D1D5DB"
+                    border.width: 1
+                    radius: 8
+                }
+
+                contentItem: Text {
+                    text: "⚙"
+                    font.pixelSize: 18
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                    color: "#212121"
+                }
+
+                onClicked: personaPopup.open()
             }
         }
 
@@ -224,19 +254,19 @@ Item {
         Button {
             id: idBtn_PGNAnalysis
             Layout.fillWidth: true
-            Layout.preferredHeight: 40
-            text: qsTr("Analyze Game")
+            Layout.preferredHeight: 42
+            text: qsTr("Analyze Game") + " (" + id_InitialScreen.selectedPersonaLabel + ")"
 
             background: Rectangle {
                 color: idBtn_PGNAnalysis.down ? "#1565C0" : "#1976D2"
-                radius: 6
+                radius: 8
             }
 
             contentItem: Text {
                 text: idBtn_PGNAnalysis.text
                 color: "white"
                 font.bold: true
-                font.pixelSize: 16
+                font.pixelSize: 15
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
             }
@@ -257,6 +287,9 @@ Item {
                 }
 
                 if (pgnToAnalyze !== "") {
+                    console.log("Setting Persona to Index:", id_InitialScreen.selectedPersonaIndex);
+                    id_aiHandler.setPersona(id_InitialScreen.selectedPersonaIndex);
+
                     console.log("Analyzing Selected PGN:\n", pgnToAnalyze);
                     sgnBtnAnalysisClicked();
                     id_boardHandler.parsePgn(pgnToAnalyze);
@@ -266,6 +299,264 @@ Item {
             }
         }
     }
+
+    // ==========================================
+    //  PERSONA SELECTION POPUP
+    // ==========================================
+    Popup {
+        id: personaPopup
+        x: (parent.width - width) / 2
+        y: (parent.height - height) / 2
+        width: 320
+        height: 310
+        modal: true
+        focus: true
+        closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+
+        background: Rectangle {
+            color: "#FFFFFF"
+            border.color: "#E0E0E0"
+            border.width: 1
+            radius: 12
+        }
+
+        ColumnLayout {
+            anchors.fill: parent
+            anchors.margins: 16
+            spacing: 12
+
+            // Header Row
+            RowLayout {
+                Layout.fillWidth: true
+
+                Text {
+                    text: qsTr("Choose a Persona")
+                    font.pixelSize: 16
+                    font.bold: true
+                    color: "#212121"
+                    Layout.fillWidth: true
+                }
+
+                // Close Button
+                Text {
+                    text: "✕"
+                    font.pixelSize: 16
+                    color: "#757575"
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: personaPopup.close()
+                    }
+                }
+            }
+
+            Rectangle {
+                Layout.fillWidth: true
+                height: 1
+                color: "#EEEEEE"
+            }
+
+            // Persona Cards Container
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 8
+
+                // --- Persona 0 Card: Friendly Buddy ---
+                Rectangle {
+                    id: cardBuddy
+                    Layout.fillWidth: true
+                    height: 58
+                    radius: 8
+                    color: cardBuddyMouse.containsMouse ? "#F8F9FA" : (id_InitialScreen.selectedPersonaIndex === 0 ? "#E3F2FD" : "#FFFFFF")
+                    border.color: id_InitialScreen.selectedPersonaIndex === 0 ? "#1976D2" : "#E0E0E0"
+                    border.width: id_InitialScreen.selectedPersonaIndex === 0 ? 2 : 1
+
+                    // Left selection indicator accent bar
+                    Rectangle {
+                        width: 4
+                        height: parent.height - 16
+                        anchors.left: parent.left
+                        anchors.verticalCenter: parent.verticalCenter
+                        anchors.leftMargin: 4
+                        radius: 2
+                        color: "#1976D2"
+                        visible: id_InitialScreen.selectedPersonaIndex === 0
+                    }
+
+                    RowLayout {
+                        anchors.fill: parent
+                        anchors.leftMargin: 16
+                        anchors.rightMargin: 12
+                        spacing: 12
+
+                        Text {
+                            text: "🤝"
+                            font.pixelSize: 22
+                        }
+
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: 1
+
+                            Text {
+                                text: "Friendly Buddy"
+                                font.bold: true
+                                font.pixelSize: 14
+                                color: "#212121"
+                            }
+
+                            Text {
+                                text: "Encouraging & gentle"
+                                font.pixelSize: 11
+                                color: "#616161"
+                            }
+                        }
+                    }
+
+                    MouseArea {
+                        id: cardBuddyMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            id_InitialScreen.selectedPersonaIndex = 0;
+                            id_InitialScreen.selectedPersonaLabel = "🤝 Friendly Buddy";
+                            personaPopup.close();
+                        }
+                    }
+                }
+
+                // --- Persona 1 Card: Strict GM Coach ---
+                Rectangle {
+                    id: cardCoach
+                    Layout.fillWidth: true
+                    height: 58
+                    radius: 8
+                    color: cardCoachMouse.containsMouse ? "#F8F9FA" : (id_InitialScreen.selectedPersonaIndex === 1 ? "#E3F2FD" : "#FFFFFF")
+                    border.color: id_InitialScreen.selectedPersonaIndex === 1 ? "#1976D2" : "#E0E0E0"
+                    border.width: id_InitialScreen.selectedPersonaIndex === 1 ? 2 : 1
+
+                    Rectangle {
+                        width: 4
+                        height: parent.height - 16
+                        anchors.left: parent.left
+                        anchors.verticalCenter: parent.verticalCenter
+                        anchors.leftMargin: 4
+                        radius: 2
+                        color: "#1976D2"
+                        visible: id_InitialScreen.selectedPersonaIndex === 1
+                    }
+
+                    RowLayout {
+                        anchors.fill: parent
+                        anchors.leftMargin: 16
+                        anchors.rightMargin: 12
+                        spacing: 12
+
+                        Text {
+                            text: "🎓"
+                            font.pixelSize: 22
+                        }
+
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: 1
+
+                            Text {
+                                text: "Strict Coach"
+                                font.bold: true
+                                font.pixelSize: 14
+                                color: "#212121"
+                            }
+
+                            Text {
+                                text: "Rigorous & tactical focus"
+                                font.pixelSize: 11
+                                color: "#616161"
+                            }
+                        }
+                    }
+
+                    MouseArea {
+                        id: cardCoachMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            id_InitialScreen.selectedPersonaIndex = 1;
+                            id_InitialScreen.selectedPersonaLabel = "🎓 Strict GM";
+                            personaPopup.close();
+                        }
+                    }
+                }
+
+                // --- Persona 2 Card: Trash-Talking ---
+                Rectangle {
+                    id: cardRival
+                    Layout.fillWidth: true
+                    height: 58
+                    radius: 8
+                    color: cardRivalMouse.containsMouse ? "#F8F9FA" : (id_InitialScreen.selectedPersonaIndex === 2 ? "#E3F2FD" : "#FFFFFF")
+                    border.color: id_InitialScreen.selectedPersonaIndex === 2 ? "#1976D2" : "#E0E0E0"
+                    border.width: id_InitialScreen.selectedPersonaIndex === 2 ? 2 : 1
+
+                    Rectangle {
+                        width: 4
+                        height: parent.height - 16
+                        anchors.left: parent.left
+                        anchors.verticalCenter: parent.verticalCenter
+                        anchors.leftMargin: 4
+                        radius: 2
+                        color: "#1976D2"
+                        visible: id_InitialScreen.selectedPersonaIndex === 2
+                    }
+
+                    RowLayout {
+                        anchors.fill: parent
+                        anchors.leftMargin: 16
+                        anchors.rightMargin: 12
+                        spacing: 12
+
+                        Text {
+                            text: "🔥"
+                            font.pixelSize: 22
+                        }
+
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: 1
+
+                            Text {
+                                text: "Trash-Talking"
+                                font.bold: true
+                                font.pixelSize: 14
+                                color: "#212121"
+                            }
+
+                            Text {
+                                text: "Sarcastic & Spicy"
+                                font.pixelSize: 11
+                                color: "#616161"
+                            }
+                        }
+                    }
+
+                    MouseArea {
+                        id: cardRivalMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            id_InitialScreen.selectedPersonaIndex = 2;
+                            id_InitialScreen.selectedPersonaLabel = "🔥 Trash-Talker";
+                            personaPopup.close();
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     Connections {
         target: id_chessComHandler
 

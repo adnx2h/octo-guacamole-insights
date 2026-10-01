@@ -323,7 +323,7 @@ QString AiHandler::createGameJsonQuery()
     }
 
     // 2. Format the persona prompt with user/opponent colors
-    QString formattedPersona = PERSONA_TRASH_TALKER_ROLE.arg(m_userColor, m_user);
+    QString formattedPersona = m_persona.arg(m_userColor, m_user);
     qDebug() << formattedPersona;
     QString geminiPrompt = formattedPersona + "\n\n" + JSON_OUTPUT_FORMAT;
 
@@ -364,6 +364,27 @@ void AiHandler::initializeAI(){
 void AiHandler::setUser(const QString &username, const QString &color){
     m_user = username;
     m_userColor = color;
+}
+
+void AiHandler::setPersona(const int personaIndex){
+    switch (personaIndex) {
+    case 0:
+        m_persona = PERSONA_FRIENDLY_BUDDY;
+        qDebug() << "Persona updated to: Friendly Buddy";
+        break;
+    case 1:
+        m_persona = PERSONA_STRICT_COACH;
+        qDebug() << "Persona updated to: Strict GM Coach";
+        break;
+    case 2:
+        m_persona = PERSONA_TRASH_TALKER_ROLE;
+        qDebug() << "Persona updated to: Trash-Talking Rival";
+        break;
+    default:
+        qWarning() << "Invalid persona index received:" << personaIndex << ". Falling back to Friendly Buddy.";
+        m_persona = PERSONA_FRIENDLY_BUDDY;
+        break;
+    }
 }
 
 

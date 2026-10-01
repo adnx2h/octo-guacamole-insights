@@ -38,6 +38,7 @@ public:
     void stockfishAnalysisComplete();
     Q_INVOKABLE void requestMoveExplanation(const QString &fenBeforeMove, const QString &moveMade, int evaluation);
     Q_INVOKABLE void requestGameExplanation(const QString &gameAnalysisJson);
+    Q_INVOKABLE void setPersona(const int);
 
     // Getter for the gameExplanations property
     QList<GameExplanation> gameExplanations() const { return m_gameExplanations; }
@@ -53,6 +54,7 @@ private:
 
     QList<GameExplanation> m_gameExplanations; // Stores (MoveIndex, Explanation)
     QString m_userColor, m_user;
+    QString m_persona;
 
 signals:
     // Signal for AI explanation
