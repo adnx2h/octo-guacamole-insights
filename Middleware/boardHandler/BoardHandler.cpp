@@ -407,3 +407,24 @@ void BoardHandler::findUserColor(const QString &pgnHeader)
 void BoardHandler::setUser(const QString &user){
     m_user = user;
 }
+
+void BoardHandler::goToMove(int targetIndex)
+{
+    int maxIndex = static_cast<int>(m_movesObject.moves.size()) - 1;
+    if (targetIndex < -1 || targetIndex > maxIndex) {
+        qDebug() << "goToMove: Target index out of bounds:" << targetIndex;
+        return;
+    }
+
+    if (m_moveIndex == targetIndex) {
+        return; // Already at the target move
+    }
+
+    // Step forward or backward until m_moveIndex reaches targetIndex
+    while (m_moveIndex < targetIndex) {
+        nextMove();
+    }
+    while (m_moveIndex > targetIndex) {
+        prevMove();
+    }
+}

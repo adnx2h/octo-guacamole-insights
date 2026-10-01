@@ -47,6 +47,7 @@ public:
      */
     Q_INVOKABLE void initializeBoard();
     void newEvaluation(int);
+    Q_INVOKABLE void goToMove(int targetIndex);
 
 private:
     QStringList m_uciMovesList;

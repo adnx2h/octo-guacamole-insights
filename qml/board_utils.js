@@ -47,3 +47,21 @@ function isDarkSquare(index) {
     var col = index % 8;
     return (row + col) % 2 !== 0;
 }
+
+function jumpToMove(targetIndex) {
+    if (targetIndex < -1) return;
+
+    // Call C++ handler to advance/rewind the board
+    id_boardHandler.goToMove(targetIndex);
+
+    // Update current move index property
+    currentMoveIndex = id_boardHandler.getCurrentMoveIndex();
+
+    // Ensure target move is centered in the ListView
+    var rowIndex = Math.floor(currentMoveIndex / 2);
+    id_listView_movements.positionViewAtIndex(rowIndex, ListView.Center);
+
+    // Update explanation text
+    id_TextArea_explanation.text = id_aiHandler.gameExplanations[currentMoveIndex]?.explanation
+        || "No explanation available.";
+}

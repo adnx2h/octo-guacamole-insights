@@ -2,6 +2,7 @@ import QtQuick 2.12
 import QtQuick.Controls 2.5
 import QtQuick.Layouts 1.15
 import PGN_movesModule 1.0
+import "board_utils.js" as BoardUtils
 
 Item {
     id: id_AnalysisScreen
@@ -322,13 +323,26 @@ Item {
                     id: pgn_movesModel
                 }
 
+                // Loading indicator shown while Stockfish runs
+                ColumnLayout {
+                    anchors.centerIn: parent
+                    visible: id_AnalysisScreen.analysisState === "stockfish"
+                    spacing: 4
+
+                    BusyIndicator {
+                        Layout.alignment: Qt.AlignHCenter
+                        running: parent.visible
+                    }
+                }
+
                 ListView {
                     id: id_listView_movements
                     anchors.fill: parent
                     model: movesModel
-                    visible: true
                     clip: true
                     spacing: 2
+                    // Only visible once Stockfish completes
+                    visible: id_AnalysisScreen.analysisState !== "stockfish"
 
                     // Automatically update the current index based on the active move index
                     currentIndex: Math.floor(id_AnalysisScreen.currentMoveIndex / 2)
@@ -344,7 +358,7 @@ Item {
                             // ListView.End       - scrolls so item is at the bottom
                             // ListView.Center    - scrolls so item is centered in the view
                             // ListView.Contain   - scrolls only if item is out of bounds
-                            positionViewAtIndex(currentIndex, ListView.Center);
+                            positionViewAtIndex(currentIndex, ListView.Contain);
                         }
                     }
 
@@ -403,6 +417,10 @@ Item {
                                             if (model.moveItemObject) {
                                                 console.log(model.moveItemObject.moveNumber, " White move: ", model.moveItemObject.whiteMove);
                                             }
+                                            if (model.whiteMove !== "") {
+                                                var targetIdx = index * 2;
+                                                BoardUtils.jumpToMove(targetIdx);
+                                            }
                                         }
                                     }
                                 }
@@ -433,6 +451,10 @@ Item {
                                         onClicked: {
                                             if (model.moveItemObject) {
                                                 console.log(model.moveItemObject.moveNumber, " Black moves: ", model.moveItemObject.blackMove);
+                                            }
+                                            if (model.blackMove !== "") {
+                                                var targetIdx = index * 2 + 1;
+                                                BoardUtils.jumpToMove(targetIdx);
                                             }
                                         }
                                     }
@@ -466,6 +488,18 @@ Item {
                             color: "grey"
                             border.width: 2
                             radius: 5
+                        }
+
+                        // Overlay indicator shown when Stockfish completes and AI interpretation starts
+                        ColumnLayout {
+                            anchors.centerIn: parent
+                            visible: id_AnalysisScreen.analysisState === "ai"
+                            spacing: 8
+
+                            BusyIndicator {
+                                Layout.alignment: Qt.AlignHCenter
+                                running: parent.visible
+                            }
                         }
                     }
                 }
