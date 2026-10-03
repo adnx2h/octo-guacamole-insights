@@ -6,6 +6,7 @@
 #include <QFile>
 #include <QTextStream>
 #include "Personas.h"
+#define NOT_USE_AI
 
 AiHandler::AiHandler(QObject *parent)
     : QObject{parent}
@@ -280,17 +281,9 @@ void AiHandler::stockfishAnalysisComplete(){
         moveCount == m_stockfishEvaluationsList.size())
     {
         auto jsonAnalysisGame = createGameJsonQuery();
-
-        //comented out to test locally.
+#ifdef USE_AI
         requestGameExplanation(jsonAnalysisGame);
-        
-        //start of test locally
-        // Fill m_gameExplanations with dummy entries
-        //  for (int i = 0; i < 15; ++i) {
-        //      m_gameExplanations.append({i, QString("Bla Bla\nbla bla\nbla\nof move %1").arg(i + 1)});
-        //  }
-        //  emit gameExplanationReady(m_gameExplanations);
-        //end of test locally
+#endif
     }
     else{
         qWarning() << "Error: Data lists are not synchronized or are empty. Cannot create JSON query.";

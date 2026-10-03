@@ -5,8 +5,7 @@ import "board_utils.js" as BoardUtils
 
 Item {
     id: id_InitialScreen
-    width: id_appWindow.width
-    height: id_appWindow.height
+    anchors.fill: parent
     visible: false
 
     signal sgnBtnAnalysisClicked
@@ -20,14 +19,19 @@ Item {
 
     ColumnLayout {
         anchors.fill: parent
-        anchors.margins: 15
-        spacing: 15
+        anchors.leftMargin: 15
+        anchors.rightMargin: 15
+        anchors.topMargin: 15
+        // Dynamic bottom margin for Android gesture/navigation bar
+        anchors.bottomMargin: (Qt.platform.os === "android") ? 30 : 15
+        spacing: 12
 
         // ==========================================
         // SECTION 1: TOP (Source Selector Radio Group)
         // ==========================================
         RowLayout {
             Layout.fillWidth: true
+            Layout.preferredHeight: implicitHeight
             spacing: 10
 
             RadioButton {
@@ -82,6 +86,7 @@ Item {
 
                 RowLayout {
                     Layout.fillWidth: true
+                    Layout.preferredHeight: implicitHeight
                     spacing: 10
 
                     TextField {
@@ -216,6 +221,7 @@ Item {
             ScrollView {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
+                clip: true
 
                 TextArea {
                     id: id_pgnInput
@@ -254,7 +260,7 @@ Item {
         Button {
             id: idBtn_PGNAnalysis
             Layout.fillWidth: true
-            Layout.preferredHeight: 42
+            Layout.preferredHeight: 48
             text: qsTr("Analyze Game") + " (" + id_InitialScreen.selectedPersonaLabel + ")"
 
             background: Rectangle {

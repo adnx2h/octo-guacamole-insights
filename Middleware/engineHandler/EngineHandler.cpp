@@ -3,6 +3,7 @@
 #ifdef Q_OS_ANDROID
 #include <QJniObject>
 #endif
+#define NOT_USE_AI
 
 EngineHandler::EngineHandler(QObject *parent) : QObject(parent)
 {
@@ -179,7 +180,7 @@ void EngineHandler::processNextQueuedAnalysis()
     }
     else if (m_uciCumulativeMoves.isEmpty())
     {
-        qDebug() << "Stockfish analisis complete";
+        qDebug() << "Stockfish analysis complete";
         emit sgn_stockfishAnalysisComplete();
     }
     else
